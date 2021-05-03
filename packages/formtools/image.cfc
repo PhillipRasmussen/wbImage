@@ -1,4 +1,4 @@
-<!--- @@Copyright: Copyright (c) 2010 Daemon Pty Limited. All rights reserved. ---> 
+<!--- @@Copyright: Copyright (c) 2010 Daemon Pty Limited. All rights reserved. --->
 <!--- @@License:
     This file is part of FarCry.
 
@@ -18,81 +18,81 @@
 
 <!--- @@examples:
 	<p>This example is taken from dmImage.cfc in farcry core. It has a source Image example, standard image example and thumbnail image example</p>
-	<cfproperty ftSeq="22" ftFieldset="Image Files" name="SourceImage" type="string" hint="The URL location of the uploaded image" required="No" default="" 
-	ftType="Image" 
-	ftCreateFromSourceOption="false" 
+	<cfproperty ftSeq="22" ftFieldset="Image Files" name="SourceImage" type="string" hint="The URL location of the uploaded image" required="No" default=""
+	ftType="Image"
+	ftCreateFromSourceOption="false"
 	ftAllowResize="false"
-	ftDestination="/images/dmImage/SourceImage" 
-	ftlabel="Source Image" 
-	ftImageWidth="" 
+	ftDestination="/images/dmImage/SourceImage"
+	ftlabel="Source Image"
+	ftImageWidth=""
 	ftImageHeight=""
 	ftbUploadOnly="true"
 	ftHint="Upload your high quality source image here."  />
 
-<cfproperty ftSeq="24" ftFieldset="Image Files" name="StandardImage" type="string" hint="The URL location of the optimised uploaded image that should be used for general display" required="no" default="" 
-	ftType="Image" 
-	ftDestination="/images/dmImage/StandardImage" 
-	ftImageWidth="400" 
-	ftImageHeight="1000" 
-	ftAutoGenerateType="FitInside" 
-	ftSourceField="SourceImage" 
-	ftCreateFromSourceDefault="true" 
-	ftAllowUpload="true" 
+<cfproperty ftSeq="24" ftFieldset="Image Files" name="StandardImage" type="string" hint="The URL location of the optimised uploaded image that should be used for general display" required="no" default=""
+	ftType="Image"
+	ftDestination="/images/dmImage/StandardImage"
+	ftImageWidth="400"
+	ftImageHeight="1000"
+	ftAutoGenerateType="FitInside"
+	ftSourceField="SourceImage"
+	ftCreateFromSourceDefault="true"
+	ftAllowUpload="true"
 	ftQuality=".75"
 	ftlabel="Mid Size Image"
-	ftHint="This image is generally used throughout your project as the main image. Most often you would have this created automatically from the high quality source image you upload." />  
+	ftHint="This image is generally used throughout your project as the main image. Most often you would have this created automatically from the high quality source image you upload." />
 
-<cfproperty ftSeq="26" ftFieldset="Image Files" name="ThumbnailImage" type="string" hint="The URL location of the thumnail of the uploaded image that should be used in " required="no" default="" 
-	ftType="Image"  
-	ftDestination="/images/dmImage/ThumbnailImage" 
-	ftImageWidth="80" 
-	ftImageHeight="80" 
+<cfproperty ftSeq="26" ftFieldset="Image Files" name="ThumbnailImage" type="string" hint="The URL location of the thumnail of the uploaded image that should be used in " required="no" default=""
+	ftType="Image"
+	ftDestination="/images/dmImage/ThumbnailImage"
+	ftImageWidth="80"
+	ftImageHeight="80"
 	ftAutoGenerateType="center"
-	ftSourceField="SourceImage" 
-	ftCreateFromSourceDefault="true" 
-	ftAllowUpload="true" 
+	ftSourceField="SourceImage"
+	ftCreateFromSourceDefault="true"
+	ftAllowUpload="true"
 	ftQuality=".75"
 	ftlabel="Thumbnail Image"
 	ftHint="This image is generally used throughout your project as the thumbnail teaser image. Most often you would have this created automatically from the high quality source image you upload." />
 
 <p>Image with no resize otions</p>
 
-<cfproperty name="featureImage" type="string" hint="Feature image for Lysaght site (landscape)." required="no" default="" 
-	ftwizardStep="Body" 
-	ftseq="34" ftfieldset="Feature Image" 
+<cfproperty name="featureImage" type="string" hint="Feature image for Lysaght site (landscape)." required="no" default=""
+	ftwizardStep="Body"
+	ftseq="34" ftfieldset="Feature Image"
 	ftAllowResize="false"
-	ftType="image" 
-	ftDestination="/images/lysaght/bslCaseStudy/featureImage" 
+	ftType="image"
+	ftDestination="/images/lysaght/bslCaseStudy/featureImage"
 	ftlabel="Feature Image" />
 
 <p>Crop the first image from an array source field</p>
 
-<cfproperty name="coverImage" type="string" required="no" default=""  
-	ftwizardStep="News Body" 
-	ftseq="43" ftfieldset="Images" 
+<cfproperty name="coverImage" type="string" required="no" default=""
+	ftwizardStep="News Body"
+	ftseq="43" ftfieldset="Images"
 	ftType="image"
-	ftSourceField="aImages:SourceImage" 
+	ftSourceField="aImages:SourceImage"
 	ftAutoGenerateType="center"
-	ftCreateFromSourceDefault="true" 
+	ftCreateFromSourceDefault="true"
 	ftAllowUpload="true"
-	ftImageWidth="150" ftImageHeight="150" 
-	ftDestination="/images/dmNews/coverImage" 
+	ftImageWidth="150" ftImageHeight="150"
+	ftDestination="/images/dmNews/coverImage"
 	ftlabel="Cover Image 150x150" />
 
 --->
 
 
-<cfcomponent name="Image" displayname="image" Extends="farcry.core.packages.formtools.image" hint="Field component to liase with all Image types"> 
-	
-	
+<cfcomponent name="Image" displayname="image" Extends="farcry.core.packages.formtools.image" hint="Field component to liase with all Image types">
+
+
 	<cffunction name="edit" access="public" output="true" returntype="string" hint="his will return a string of formatted HTML text to enable the user to edit the data">
 	    <cfargument name="typename" required="true" type="string" hint="The name of the type that this field is part of.">
 	    <cfargument name="stObject" required="true" type="struct" hint="The object of the record that this field is part of.">
 	    <cfargument name="stMetadata" required="true" type="struct" hint="This is the metadata that is either setup as part of the type.cfc or overridden when calling ft:object by using the stMetadata argument.">
 	    <cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
 	    <cfargument name="stPackage" required="true" type="struct" hint="Contains the metadata for the all fields for the current typename.">
-	    
-	    
+
+
 	    <cfset var html = "" />
 	    <cfset var previewHTML = "" />
 	    <cfset var dimensionAlert = "" />
@@ -110,11 +110,11 @@
 	    <cfset var error = "" />
 	    <cfset var readImageError = "" />
 	    <cfset var imageMaxWidth = 400 />
-		
-		
+
+
 		<cfimport taglib="/farcry/core/tags/webskin/" prefix="skin" />
 		<cfimport taglib="/farcry/core/tags/formtools/" prefix="ft" />
-	    
+
 	    <cfparam name="arguments.stMetadata.ftstyle" default="">
 	    <cfparam name="arguments.stMetadata.ftDestination" default="/images">
 	    <cfparam name="arguments.stMetadata.ftSourceField" default="">
@@ -132,33 +132,33 @@
 	    <cfparam name="arguments.stMetadata.ftShowConversionInfo" default="true"><!--- Set to false to hide the conversion information that will be applied to the uploaded image --->
 	    <cfparam name="arguments.stMetadata.ftAllowedExtensions" default="jpg,jpeg,png,gif"><!--- The extentions allowed to be uploaded --->
 	    <cfparam name="arguments.stMetadata.ftSizeLimit" default="0" />
-		
+
 	    <skin:loadJS id="fc-jquery" />
 	    <skin:loadCSS id="jquery-ui" />
 	    <skin:loadJS id="jquery-tooltip" />
 	    <skin:loadJS id="jquery-tooltip-auto" />
 	    <skin:loadCSS id="jquery-tooltip" />
-	 
-		
-		
-		<skin:loadJS id="plupload" />	
-			
+
+
+
+		<skin:loadJS id="plupload" />
+
 	    <skin:loadJS id="jquery-crop" />
 	    <skin:loadCSS id="jquery-crop" />
 	    <skin:loadCSS id="fc-fontawesome" />
-	    
+
 	    <skin:loadCSS id="image-formtool" />
 		<skin:loadJS id="image-formtool" />
-		
-		
-	    
+
+
+
 	    <cfsavecontent variable="metadatainfo">
 			<cfif (isnumeric(arguments.stMetadata.ftImageWidth) and arguments.stMetadata.ftImageWidth gt 0) or (isnumeric(arguments.stMetadata.ftImageHeight) and arguments.stMetadata.ftImageHeight gt 0)>
 				<cfoutput>Dimensions: <cfif isnumeric(arguments.stMetadata.ftImageWidth) and arguments.stMetadata.ftImageWidth gt 0>#arguments.stMetadata.ftImageWidth#<cfelse>any width</cfif> x <cfif isnumeric(arguments.stMetadata.ftImageHeight) and arguments.stMetadata.ftImageHeight gt 0>#arguments.stMetadata.ftImageHeight#<cfelse>any height</cfif> (#predefinedCrops[arguments.stMetadata.ftAutoGenerateType]#)<br>Quality Setting: #round(arguments.stMetadata.ftQuality*100)#%<br></cfoutput>
 			</cfif>
-			<cfoutput>Image must be of type #arguments.stMetadata.ftAllowedExtensions#</cfoutput>
+			<cfoutput>Image must be of type #arguments.stMetadata.ftAllowedExtensions#<br>Max Size: #arguments.stMetadata.ftSizeLimit/1e+6#Mb</cfoutput>
 		</cfsavecontent>
-	    
+
 		<cfif bFileExists>
 			<cfset stImage = getImageInfo(file=arguments.stMetadata.value,admin=true) />
 			<cfif isdefined("stImage.stError.message") and len(stImage.stError.message)>
@@ -178,9 +178,9 @@
 				<cfset imagePath = getFileLocation(stObject=arguments.stObject,stMetadata=arguments.stMetadata,admin=true).path />
 			</cfif>
 		</cfif>
-	    
+
 		<cfif len(arguments.stMetadata.ftSourceField)>
-			
+
 			<!--- This image will be generated from the source field --->
 			<cfsavecontent variable="html"><cfoutput>
 				<div class="multiField" style="padding-top:5px">
@@ -188,8 +188,8 @@
 					<input type="hidden" name="#arguments.fieldname#DELETE" id="#arguments.fieldname#DELETE" value="false" />
 					<div id="#arguments.fieldname#-multiview">
 						<cfif arguments.stMetadata.ftAllowUpload>
-							
-							
+
+
 							<div id="#arguments.fieldname#_upload" class="upload-view" style="display:none;">
 								<!---<a href="##traditional" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw"></i></a>
 								<input type="file" name="#arguments.fieldname#NEW" id="#arguments.fieldname#NEW" />--->
@@ -206,7 +206,7 @@
 							</div>
 							<div id="#arguments.fieldname#_delete" class="delete-view" style="display:none;">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<ft:button class="image-delete-button" id="#arguments.fieldname#DeleteThis" type="button" value="Delete this image" onclick="return false;" />						    		
+								<ft:button class="image-delete-button" id="#arguments.fieldname#DeleteThis" type="button" value="Delete this image" onclick="return false;" />
 								<div class="image-cancel-upload"><i class="fa fa-times-cirlce-o fa-fw"></i> <a href="##back" class="select-view">Cancel - I don't want to delete</a></div>
 							</div>
 						</cfif>
@@ -258,12 +258,12 @@
 					<script type="text/javascript">$fc.imageformtool('#prefix#','#arguments.stMetadata.name#').init('#getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)#','#arguments.stMetadata.ftAllowedExtensions#','#arguments.stMetadata.ftSourceField#',#arguments.stMetadata.ftImageWidth#,#arguments.stMetadata.ftImageHeight#,false,#arguments.stMetadata.ftSizeLimit#);</script>
 				</div>
 			</cfoutput></cfsavecontent>
-			
+
 		<cfelse>
-			
+
 			<!--- This IS the source field --->
 		    <cfsavecontent variable="html"><cfoutput>
-				
+
 			    <div class="multiField">
 					<input type="hidden" name="#arguments.fieldname#" id="#arguments.fieldname#" value="#arguments.stMetadata.value#" />
 					<input type="hidden" name="#arguments.fieldname#DELETE" id="#arguments.fieldname#DELETE" value="false" />
@@ -271,11 +271,13 @@
 						<div id="#arguments.fieldname#_upload" class="upload-view s3upload"<cfif len(arguments.stMetadata.value)> style="display:none;"</cfif>>
 							<!---<a href="##traditional" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw">&nbsp;</i></a>
 							<input type="file" name="#arguments.fieldname#NEW" id="#arguments.fieldname#NEW" />--->
-							
+
 							<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative"><div class="info" style="text-align:center;margin-top:40px;">drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div></div>
-					
+
 							<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
-							<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
+							<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw fc-tooltip" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
+
+
 							<div class="image-cancel-upload" style="clear:both;<cfif not len(arguments.stMetadata.value)>display:none;</cfif>"><i class="fa fa-times-cirlce-o fa-fw"></i> <a href="##back" class="select-view">Cancel - I don't want to replace this image</a></div>
 						</div>
 						<div id="#arguments.fieldname#_traditional" class="traditional-view" style="display:none;">
@@ -314,7 +316,7 @@
 					<script type="text/javascript">$fc.imageformtool('#prefix#','#arguments.stMetadata.name#').init('#getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)#','#arguments.stMetadata.ftAllowedExtensions#','#arguments.stMetadata.ftSourceField#',#arguments.stMetadata.ftImageWidth#,#arguments.stMetadata.ftImageHeight#,false,#arguments.stMetadata.ftSizeLimit#);</script>
 					<cfif len(arguments.stMetadata.ftInlineDependants)><div style="margin-top: 10px; margin-left: 20px; font-weight: bold; font-style: italic;">Image sizes:</div></cfif>
 				</cfoutput>
-				
+
 				<cfloop list="#arguments.stMetadata.ftInlineDependants#" index="thisdependant">
 					<cfif structkeyexists(arguments.stObject,thisdependant)>
 						<cfset stAltMeta = duplicate(arguments.stPackage.stProps[thisdependant].metadata) />
@@ -323,12 +325,12 @@
 						<cfoutput>#editInline(typename=arguments.typename,stObject=arguments.stObject,stMetadata=stAltMeta,fieldname="#prefix##stAltMeta.name#",stPackage=arguments.stPackage,prefix=prefix)#</cfoutput>
 					</cfif>
 				</cfloop>
-				
+
 				<cfoutput></div></cfoutput>
 		    </cfsavecontent>
-			
+
 		</cfif>
-	    
+
 	    <cfreturn html>
 	</cffunction>
 
@@ -339,7 +341,7 @@
 	    <cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
 	    <cfargument name="stPackage" required="true" type="struct" hint="Contains the metadata for the all fields for the current typename.">
 	    <cfargument name="prefix" required="true" type="string" hint="Form prefix" />
-	    
+
 		<cfset var html = "" />
 		<cfset var metadatainfo = "" />
 		<cfset var preview = "" />
@@ -349,7 +351,7 @@
 	    <cfset var bFileExists = getFileExists(arguments.stMetadata.value) />
 	    <cfset var imagePath = "" />
 	    <cfset var error = "" />
-	    
+
 		<cfparam name="arguments.stMetadata.ftHint" default="" />
 	    <cfparam name="arguments.stMetadata.ftstyle" default="">
 	    <cfparam name="arguments.stMetadata.ftDestination" default="/images">
@@ -366,7 +368,7 @@
 	    <cfparam name="arguments.stMetadata.ftShowConversionInfo" default="true"><!--- Set to false to hide the conversion information that will be applied to the uploaded image --->
 	    <cfparam name="arguments.stMetadata.ftAllowedExtensions" default="jpg,jpeg,png,gif"><!--- The extentions allowed to be uploaded --->
 	    <cfparam name="arguments.stMetadata.ftSizeLimit" default="0" />
-		
+
 	    <!--- Metadata --->
 	    <cfsavecontent variable="metadatainfo">
 			<cfif (isnumeric(arguments.stMetadata.ftImageWidth) and arguments.stMetadata.ftImageWidth gt 0) or (isnumeric(arguments.stMetadata.ftImageHeight) and arguments.stMetadata.ftImageHeight gt 0)>
@@ -374,7 +376,7 @@
 			</cfif>
 			<cfoutput>Image must be of type #arguments.stMetadata.ftAllowedExtensions#</cfoutput>
 		</cfsavecontent>
-		
+
 		<!--- Preview --->
 		<cfif bFileExists>
 			<cfset preview = "<img src='#getFileLocation(stObject=arguments.stObject,stMetadata=arguments.stMetadata,admin=true).path#' style='width:400px; max-width:400px; max-height:400px;' />" />
@@ -385,10 +387,10 @@
 		<cfelse>
 			<cfset preview = "" />
 		</cfif>
-	    
+
 		<cfsavecontent variable="html"><cfoutput>
 			<div id="#arguments.fieldname#-inline" style="margin-left:20px;">
-			
+
 				<input type="hidden" name="#arguments.fieldname#" id="#arguments.fieldname#" value="#arguments.stMetadata.value#" />
 				<input type="hidden" name="#arguments.fieldname#RESIZEMETHOD" id="#arguments.fieldname#RESIZEMETHOD" value="" />
 				<input type="hidden" name="#arguments.fieldname#DELETE" id="#arguments.fieldname#DELETE" value="false" />
@@ -398,7 +400,7 @@
 					(
 						<span class="not-cancel">
 							<span class="action-preview action"<cfif not len(arguments.stMetadata.value)> style="display:none;"</cfif>>
-								<a class="image-preview" href="#application.url.imageroot##arguments.stMetadata.value#" target="_blank" title="#preview#">Preview</a> | 
+								<a class="image-preview" href="#application.url.imageroot##arguments.stMetadata.value#" target="_blank" title="#preview#">Preview</a> |
 							</span>
 							<span class="action-crop action"<cfif not len(arguments.stObject[listfirst(arguments.stMetadata.ftSourceField,":")])> style="display:none;"</cfif>>
 								<a class="image-crop-select-button" href="##">Custom crop</a><cfif arguments.stMetadata.ftAllowUpload> | </cfif>
@@ -429,9 +431,9 @@
 				<br class="clear">
 			</div>
 		</cfoutput></cfsavecontent>
-		
+
 		<cfreturn html />
 	</cffunction>
 
-	
-</cfcomponent> 
+
+</cfcomponent>
