@@ -156,7 +156,7 @@
 			<cfif (isnumeric(arguments.stMetadata.ftImageWidth) and arguments.stMetadata.ftImageWidth gt 0) or (isnumeric(arguments.stMetadata.ftImageHeight) and arguments.stMetadata.ftImageHeight gt 0)>
 				<cfoutput>Dimensions: <cfif isnumeric(arguments.stMetadata.ftImageWidth) and arguments.stMetadata.ftImageWidth gt 0>#arguments.stMetadata.ftImageWidth#<cfelse>any width</cfif> x <cfif isnumeric(arguments.stMetadata.ftImageHeight) and arguments.stMetadata.ftImageHeight gt 0>#arguments.stMetadata.ftImageHeight#<cfelse>any height</cfif> (#predefinedCrops[arguments.stMetadata.ftAutoGenerateType]#)<br>Quality Setting: #round(arguments.stMetadata.ftQuality*100)#%<br></cfoutput>
 			</cfif>
-			<cfoutput>Image must be of type #arguments.stMetadata.ftAllowedExtensions#<br>Max Size: #arguments.stMetadata.ftSizeLimit/1e+6#Mb</cfoutput>
+			<cfoutput>Image must be of type #arguments.stMetadata.ftAllowedExtensions#<br>Max File Size: <cfif arguments.stMetadata.ftSizeLimit>#arguments.stMetadata.ftSizeLimit/1e+6#Mb<cfelse>Any</cfif></cfoutput>
 		</cfsavecontent>
 
 		<cfif bFileExists>
@@ -193,7 +193,10 @@
 							<div id="#arguments.fieldname#_upload" class="upload-view" style="display:none;">
 								<!---<a href="##traditional" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw"></i></a>
 								<input type="file" name="#arguments.fieldname#NEW" id="#arguments.fieldname#NEW" />--->
-								<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative"><div class="info" style="text-align:center;margin-top:40px;">drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div></div>
+								<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative"><div class="info" style="text-align:center;margin-top:40px;">drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div>
+								<div style="position:absolute;bottom:2px;right:2px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
+
+								</div>
 								<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
 								<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
 								<div class="image-cancel-upload" style="clear:both;"><i class="fa fa-times-cirlce-o fa-fw"></i> <a href="##back" class="select-view">Cancel - I don't want to upload an image</a></div>
@@ -272,7 +275,9 @@
 							<!---<a href="##traditional" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw">&nbsp;</i></a>
 							<input type="file" name="#arguments.fieldname#NEW" id="#arguments.fieldname#NEW" />--->
 
-							<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative"><div class="info" style="text-align:center;margin-top:40px;">drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div></div>
+							<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative"><div class="info" style="text-align:center;margin-top:40px;">drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div>
+							<div style="position:absolute;bottom:2px;right:2px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
+							</div>
 
 							<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
 							<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw fc-tooltip" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
