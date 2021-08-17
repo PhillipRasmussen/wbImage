@@ -29,6 +29,7 @@
 
     <cfif structkeyexists(arguments.stMetadata,"ftWatch") and len(arguments.stMetadata.ftWatch) AND len(arguments.stObject[listfirst(arguments.stMetadata.ftWatch)]) >
 		<cfset aPalette = getPalette(arguments.stObject[listfirst(arguments.stMetadata.ftWatch)],arguments.stMetadata.ftPaletteSize)>
+		<cfset arguments.stMetadata.value = serializeJSON(aPalette)>
 		<cfloop from="1" to="#arrayLen(aPalette)#" index="i">
 		<cfset blocks = blocks&'<div style="display:block;width:50px;height:50px;border-radius: 50%;background: #createRGBString(aPalette[i])#" title="# createRGBHexString(aPalette[i])#"></div>'>
 		</cfloop>
