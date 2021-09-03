@@ -15,9 +15,17 @@ This stores a JSON of RGB colours of the images to a string field. The first col
 
 ![Image](/www/images/color-palette.png)
 
+aPalette = application.formtools.colorPalette.oFactory.getPalette('/images/dmImage/SourceImage/xxx.jpg',5)
+
 You can also convert the array of values into an RGB or RGBHEX string:
 application.formtools.colorPalette.oFactory.createRGBString([133,120,72]) = rgb(133,120,72)
 application.formtools.colorPalette.oFactory.createRGBHEXString([133,120,72]) = #857848
+
+Find the Luminosity
+application.formtools.colorPalette.oFactory.getRGBLum(aPalette[1]) returns int 0 - 255
+of a palette array
+application.formtools.colorPalette.oFactory.getLightest(aPalette) 
+application.formtools.colorPalette.oFactory.getDarkest(aPalette)
 
 ### Thanks
 * Sven Woltmann - for the Color Thief Java version, available at https://github.com/SvenWoltmann/color-thief-java/
