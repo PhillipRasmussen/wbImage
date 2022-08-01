@@ -30,14 +30,38 @@
     <cfif structkeyexists(arguments.stMetadata,"ftWatch") and len(arguments.stMetadata.ftWatch) AND len(arguments.stObject[listfirst(arguments.stMetadata.ftWatch)]) >
 		<cfset aPalette = getPalette(arguments.stObject[listfirst(arguments.stMetadata.ftWatch)],arguments.stMetadata.ftPaletteSize)>
 		<cfloop from="1" to="#arrayLen(aPalette)#" index="i">
-		<cfset blocks = blocks&'<div style="display:block;width:50px;height:50px;border-radius: 50%;background: #createRGBString(aPalette[i])#" title="# createRGBHexString(aPalette[i])#"></div>'>
+		<cfset blocks = blocks&'<div style="display:block;width:50px;height:50px;border-radius: 50%;background: #createRGBString(aPalette[i])#" title="#createRGBHexString(aPalette[i])#" rel="#createRGBHexString(aPalette[i])#"></div>'>
 		</cfloop>
 		<cfset arguments.stMetadata.value = serializeJSON(aPalette)>
-		<cfset blocks = '<div style="display:flex">#blocks#</div>'>
-        <cfset theReturn = blocks & super.edit(argumentCollection="#arguments#") />
+		<cfset blocks = '<div class="palette" style="display:flex">#blocks#</div>'>
+		<cfsavecontent variable="js">
+			<cfoutput>
+			<style>
+				.palette div {cursor: pointer};
+			</style>
+			<script>
+	$(document).ready(function(){
+		$('.palette div').tooltip();
+		$('.palette div').on('click',function(){
+			var mylink = $(this).attr('rel');			
+			navigator.clipboard.writeText(mylink); 
+			$(this).attr('data-original-title', 'Colour Copied to Clipboard').tooltip('show');
+		});
+		$('.palette div').on('mouseout',function(){
+			var mylink = $(this).attr('rel');			
+			
+			$(this).attr('data-original-title', mylink).tooltip('hide');
+		});
+		
+	});
+	
+</script>
+				</cfoutput>
+		</cfsavecontent>
+        <cfset theReturn = blocks & js & super.edit(argumentCollection="#arguments#") />
     </cfif>
 
-    <cfreturn theReturn>
+    <cfreturn 	theReturn>
 </cffunction>
 
 		<cffunction name="getPalette" access="public" output="false" returntype="any" hint="This will return an array of 5 rgb colours">
