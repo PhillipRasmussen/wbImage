@@ -3,6 +3,10 @@ Farcry wbImage Plugin
 
 This will replace the old Flash based uploader with a PLUPLOAD widget.
 
+## Highlights
+* Drag'n Drop
+* Rotate Image (90deg clockwise)
+
 ![Image](/www/images/uploader-image.png)
 
 ## New FormTool : ColorPalette
