@@ -11,6 +11,8 @@ This will replace the old Flash based uploader with a PLUPLOAD widget.
 
 ## New FormTool : ColorPalette
 
+(Requires Lucee)
+
 This stores a JSON of RGB colours of the images to a string field. The first color is the dominant color.
 
 * ftType="colorpalette" 
