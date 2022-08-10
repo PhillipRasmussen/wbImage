@@ -301,7 +301,7 @@
 							<div id="#arguments.fieldname#_complete" class="complete-view">
 		    					<cfif len(readImageError)><div id="#arguments.fieldname#_readImageError" class="alert alert-error alert-error-readimg" style="margin-top:0.7em;margin-bottom:0.7em;">#readImageError#</div></cfif>
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<span class="image-filename">#listfirst(listlast(arguments.stMetadata.value,"/"),"?")#</span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#' style='max-width:400px; max-height:400px;' />" href="#imagePath#" target="_blank">Preview</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
+								<span class="image-filename">#listfirst(listlast(arguments.stMetadata.value,"/"),"?")#</span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#' style='max-width:400px; max-height:400px;' />" href="#imagePath#" target="_blank">Preview</a> | <a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
 								<cfif arguments.stMetadata.ftShowMetadata>
 									<i class="fa fa-info-circle-o fa-fw"></i> Size: <span class="image-size">#round(stImage.size / 1024)#</span>KB, Dimensions: <span class="image-width">#stImage.width#</span>px x <span class="image-height">#stImage.height#</span>px
 									<div class="image-resize-information alert alert-info" style="padding:0.7em;margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>
@@ -310,7 +310,7 @@
 						<cfelse>
 						    <div id="#arguments.fieldname#_complete" class="complete-view" style="display:none;">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<span class="image-filename"></span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='' style='max-width:400px; max-height:400px;' />" href="##" target="_blank">Preview</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
+								<span class="image-filename"></span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='' style='max-width:400px; max-height:400px;' />" href="##" target="_blank">Preview</a> | <a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
 								<cfif arguments.stMetadata.ftShowMetadata>
 									<i class="fa fa-info-circle-o fa-fw"></i> Size: <span class="image-size"></span>KB, Dimensions: <span class="image-width"></span>px x <span class="image-height"></span>px
 									<div class="image-resize-information alert alert-info" style="padding:0.7em;margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>
@@ -440,5 +440,671 @@
 		<cfreturn html />
 	</cffunction>
 
+			<cffunction name="ajax" output="false" returntype="string" hint="Response to ajax requests for this formtool">
+		<cfargument name="typename" required="true" type="string" hint="The name of the type that this field is part of.">
+		<cfargument name="stObject" required="true" type="struct" hint="The object of the record that this field is part of.">
+		<cfargument name="stMetadata" required="true" type="struct" hint="This is the metadata that is either setup as part of the type.cfc or overridden when calling ft:object by using the stMetadata argument.">
+		<cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
+		
+		<cfset var stResult = structnew() />
+		<cfset var stFixed = structnew() />
+		<cfset var stSource = structnew() />
+		<cfset var stFile = structnew() />
+		<cfset var stImage = structnew() />
+		<cfset var stLoc = structnew() />
+		<cfset var resizeinfo = "" />
+		<cfset var sourceField = "" />
+		<cfset var html = "" />
+		<cfset var json = "" />
+		<cfset var stJSON = structnew() />
+	    <cfset var prefix = left(arguments.fieldname,len(arguments.fieldname)-len(arguments.stMetadata.name)) />
+		
+		<cfimport taglib="/farcry/core/tags/formtools" prefix="ft" />
+		
+		<cfif structkeyexists(url,"check")>
+			<cfif isdefined("url.callback")>
+				<cfreturn "#url.callback#([])" />
+			<cfelse>
+				<cfreturn "[]" />
+			</cfif>
+		</cfif>
+		
+		<cfif structKeyExists(form,'bRotate')>
+			<cfparam name="form.bForceCrop" default="false">
+				
+				<cfset stFixed = fixImage(form[arguments.stMetadata.name],arguments.stMetadata,'','',form.bForceCrop,form.bRotate) />
+				
+				<cfset stJSON["value"] = stFixed.value />
+					<cfset stJSON["filename"] = listfirst(listlast(stFixed.value,'/'),"?") />
+					<cfset stJSON["fullpath"] = stFixed.value />
+				<cfreturn serializeJSON(stJSON)>
+		</cfif>		
+			
+			
+		<cfif structkeyexists(url,"crop")>
+			<cfset stSource = arguments.stObject />
+			<cfset sourceField = listfirst(arguments.stMetadata.ftSourceField,":") />
+			<cfif isArray(stSource[sourceField]) and arrayLen(stSource[sourceField])>
+				<cfset stSource = application.fapi.getContentObject(objectid=stSource[sourceField][1]) />
+				<cfset sourceField = listlast(arguments.stMetadata.ftSourceField,":") />
+			<cfelseif issimplevalue(stSource[sourceField]) and isvalid("uuid",stSource[sourceField])>
+				<cfset stSource = application.fapi.getContentObject(objectid=stSource[sourceField]) />
+				<cfset sourceField = listlast(arguments.stMetadata.ftSourceField,":") />
+			</cfif>
+			
+			<cfif not structkeyexists(arguments.stMetadata,"ftImageWidth") or not isnumeric(arguments.stMetadata.ftImageWidth)><cfset arguments.stMetadata.ftImageWidth = 0 /></cfif>
+			<cfif not structkeyexists(arguments.stMetadata,"ftImageHeight") or not isnumeric(arguments.stMetadata.ftImageHeight)><cfset arguments.stMetadata.ftImageHeight = 0 /></cfif>
+	    	<cfparam name="arguments.stMetadata.ftAllowResizeQuality" default="false">
+	    	<cfparam name="url.allowcancel" default="1" />
+	    	
+			<cfif len(sourceField)>
+				<cfset stLoc = getFileLocation(stObject=stSource,stMetadata=application.stCOAPI[stSource.typename].stProps[sourceField].metadata,admin=true) />
+				
+				<cfsavecontent variable="html"><cfoutput>
+					<div style="float:left;background-color:##cccccc;height:100%;width:65%;margin-right:1%;">
+						<img id="cropable-image" src="#stLoc.path#" style="max-width:none;" />
+					</div>
+					<div style="float:left;width:33%;">
+						<div class="image-crop-instructions" style="overflow-y:auto;overlow-y:hidden;">
+							<p class="image-resize-information alert alert-info">
+								<strong style="font-weight:bold">Selection:</strong><br>
+								Coordinates: (<span id="image-crop-a-x">?</span>,<span id="image-crop-a-y">?</span>) to (<span id="image-crop-b-x">?</span>,<span id="image-crop-b-y">?</span>)<br>
+								<span id="image-crop-dimensions">Dimensions: <span id="image-crop-width">?</span>px x <span id="image-crop-height">?</span>px</span><br>
+								<cfif arguments.stMetadata.ftImageWidth gt 0 and arguments.stMetadata.ftImageHeight gt 0>
+									Ratio: 
+									<cfif arguments.stMetadata.ftImageWidth gt arguments.stMetadata.ftImageHeight>
+										#numberformat(arguments.stMetadata.ftImageWidth/arguments.stMetadata.ftImageHeight,"9.99")#:1
+									<cfelseif arguments.stMetadata.ftImageWidth lt arguments.stMetadata.ftImageHeight>
+										1:#numberformat(arguments.stMetadata.ftImageHeight/arguments.stMetadata.ftImageWidth,"9.99")#
+									<cfelse><!--- Equal --->
+										1:1
+									</cfif> <span style="font-style:italic;">(Fixed aspect ratio)</span><br>
+								<cfelse>
+									Ratio: <span id="image-crop-ratio-num">?</span>:<span id="image-crop-ratio-den">?</span><br>
+								</cfif>
+								<strong style="font-weight:bold">Output:</strong><br>
+								Dimensions: <span id="image-crop-width-final">#arguments.stMetadata.ftImageWidth#</span>px x <span id="image-crop-height-final">#arguments.stMetadata.ftImageHeight#</span>px<br>
+								Quality: <cfif arguments.stMetadata.ftAllowResizeQuality><input id="image-crop-quality" value="#arguments.stMetadata.ftQuality#" /><cfelse>#round(arguments.stMetadata.ftQuality*100)#%<input type="hidden" id="image-crop-quality" value="#arguments.stMetadata.ftQuality#" /></cfif>
+							</p>
+							<p id="image-crop-warning" class="alert alert-warning" style="display:none;">
+								<strong style="font-weight:bold">Warning:</strong> The selected crop area is smaller than the output size. To avoid poor image quality choose a larger crop or use a higher resolution source image.
+							</p>							
+							<p style="margin-top: 0.7em">To select a crop area:</p>
+							<ol style="padding-left:10px;padding-top:0.7em">
+								<li style="list-style:decimal outside;">Click and drag from the point on the image where the top left corner of the crop will start to the bottom right corner where the crop will finish.</li>
+								<li style="list-style:decimal outside;">You can drag the selection box around the image if it isn't in the right place, or drag the edges and corners if the box isn't the right shape.</li>
+								<li style="list-style:decimal outside;">Click "Crop and Resize" when you're done.</li>
+							</ol>
+						</div>
+						<div class="image-crop-actions">
+							<button id="image-crop-finalize" class="btn btn-large btn-primary" onclick="$fc.imageformtool('#prefix#','#arguments.stMetadata.name#').finalizeCrop();return false;">Crop and Resize</button>
+							<cfif url.allowcancel>
+								<a href="##" id="image-crop-cancel" class="btn btn-link" style="border:none;box-shadow:none;background:none">Cancel</a>
+							</cfif>
+						</div>
+					</div>
+				</cfoutput></cfsavecontent>
+				
+				<cfreturn html />
+			<cfelse>
+				<cfreturn "<p>The source field is empty. <a href='##' onclick='$fc.imageformtool('#prefix#','#arguments.stMetadata.name#').endCrop();return false;'>Close</a></p>" />
+			</cfif>
+		</cfif>
+		
+		<cfset stResult = handleFilePost(
+				objectid=arguments.stObject.objectid,
+				existingfile=arguments.stMetadata.value,
+				uploadfield="#arguments.stMetadata.name#NEW",
+				destination=arguments.stMetadata.ftDestination,
+				allowedExtensions=arguments.stMetadata.ftAllowedExtensions,
+				stFieldPost=arguments.stFieldPost.stSupporting,
+				sizeLimit=arguments.stMetadata.ftSizeLimit,
+				bArchive=application.stCOAPI[arguments.typename].bArchive and (not structkeyexists(arguments.stMetadata,"ftArchive") or arguments.stMetadata.ftArchive)
+			) />
+		
+		<cfif isdefined("stResult.stError.message") and len(stResult.stError.message)>
+			<cfset stJSON = structnew() />
+			<cfset stJSON["error"] = stResult.stError.message />
+			<cfset stJSON["value"] = stResult.value />
+			
+			<cfif isdefined("url.callback")>
+				<cfreturn "#url.callback#(#serializeJSON(stJSON)#)" />
+			<cfelse>
+				<cfreturn serializeJSON(stJSON) />
+			</cfif>
+		</cfif>
+		
+		
+		
+			
+			
+		<cfif stResult.bChanged>
+		
+			<cfif isdefined("stResult.value") and len(stResult.value)>
+			
+				<cfif not structkeyexists(arguments.stFieldPost.stSupporting,"ResizeMethod") or not isnumeric(arguments.stFieldPost.stSupporting.ResizeMethod)><cfset arguments.stFieldPost.stSupporting.ResizeMethod = arguments.stMetadata.ftAutoGenerateType /></cfif>
+				<cfif not structkeyexists(arguments.stFieldPost.stSupporting,"Quality") or not isnumeric(arguments.stFieldPost.stSupporting.Quality)><cfset arguments.stFieldPost.stSupporting.Quality = arguments.stMetadata.ftQuality /></cfif>
+				
+				<cfset stFixed = fixImage(stResult.value,arguments.stMetadata,arguments.stFieldPost.stSupporting.ResizeMethod,arguments.stFieldPost.stSupporting.Quality) />
+				
+				<cfset stJSON = structnew() />
+				<cfif stFixed.bSuccess>
+					<cfset stJSON["resizedetails"] = structnew() />
+					<cfset stJSON["resizedetails"]["method"] = arguments.stFieldPost.stSupporting.ResizeMethod />
+					<cfset stJSON["resizedetails"]["quality"] = round(arguments.stFieldPost.stSupporting.Quality*100) />
+					<cfset stResult.value = stFixed.value />
+				<cfelseif structkeyexists(stFixed,"error")>
+					<!--- Do nothing - an error from fixImage means there was no resize --->
+				</cfif>
+				
+				<cfif not structkeyexists(stResult,"error")>
+					<cfset stImage = duplicate(arguments.stObject) />
+					<cfset stImage[arguments.stMetadata.name] = stFixed.value />
+					<cfset stLoc = getFileLocation(stObject=stImage,stMetadata=arguments.stMetadata,admin=true) />
+					
+					<cfset stJSON["value"] = stFixed.value />
+					<cfset stJSON["filename"] = listfirst(listlast(stResult.value,'/'),"?") />
+					<cfset stJSON["fullpath"] = stLoc.path />
+					
+					<cfif arguments.stMetadata.ftShowMetadata>
+						<cfset stImage = getImageInfo(stFixed.value,true) />
+						<cfset stJSON["size"] = round(stImage.size / 1024) />
+						<cfset stJSON["width"] = stImage.width />
+						<cfset stJSON["height"] = stImage.height />
+					<cfelse>
+						<cfset stJSON["size"] = 0 />
+						<cfset stJSON["width"] = 0 />
+						<cfset stJSON["height"] = 0 />
+					</cfif>
+				
+					<cfset onFileChange(typename=arguments.typename,objectid=arguments.stObject.objectid,stMetadata=arguments.stMetadata,value=stFixed.value) />
+				</cfif>
+				
+				<cfif isdefined("url.callback")>
+					<cfreturn "#url.callback#(#serializeJSON(stJSON)#)" />
+				<cfelse>
+					<cfreturn serializeJSON(stJSON) />
+				</cfif>
+			</cfif>
+		</cfif>
+		
+					
+		<cfif (not len(stResult.value) or structkeyexists(arguments.stFieldPost.stSupporting,"ResizeMethod")) and structkeyexists(arguments.stMetadata,"ftSourceField") and len(arguments.stMetadata.ftSourceField)>
+		
+			<cfset stResult = handleFileSource(sourceField=arguments.stMetadata.ftSourceField,stObject=arguments.stObject,destination=arguments.stMetadata.ftDestination,stFields=application.stCOAPI[arguments.typename].stProps) />
+			
+			<cfif not structkeyexists(arguments.stFieldPost.stSupporting,"ResizeMethod") or not len(arguments.stFieldPost.stSupporting.ResizeMethod)><cfset arguments.stFieldPost.stSupporting.ResizeMethod = arguments.stMetadata.ftAutoGenerateType /></cfif>
+			<cfif not structkeyexists(arguments.stFieldPost.stSupporting,"Quality") or not isnumeric(arguments.stFieldPost.stSupporting.Quality)><cfset arguments.stFieldPost.stSupporting.Quality = arguments.stMetadata.ftQuality /></cfif>
+				
+			<cfif len(stResult.value)>
+				<cfparam name="form.bForceCrop" default="false">
+				
+				<cfset stFixed = fixImage(stResult.value,arguments.stMetadata,arguments.stFieldPost.stSupporting.ResizeMethod,arguments.stFieldPost.stSupporting.Quality,form.bForceCrop) />
+				
+				<cfset stJSON = structnew() />
+				<cfif stFixed.bSuccess>
+					<cfset stJSON["resizedetails"] = structnew() />
+					<cfset stJSON["resizedetails"]["method"] = arguments.stFieldPost.stSupporting.ResizeMethod />
+					<cfset stJSON["resizedetails"]["quality"] = round(arguments.stFieldPost.stSupporting.Quality*100) />
+				<cfelseif structkeyexists(stFixed,"error")>
+					<!--- Do nothing - an error from fixImage means there was no resize --->
+				</cfif>
+				
+				<cfif not structkeyexists(stResult,"error")>
+					<cfset stImage = duplicate(arguments.stObject) />
+					<cfset stImage[arguments.stMetadata.name] = stFixed.value />
+					<cfset stLoc = getFileLocation(stObject=stImage,stMetadata=arguments.stMetadata,admin=true) />
+					
+					<cfset stJSON["value"] = stFixed.value />
+					<cfset stJSON["filename"] = listfirst(listlast(stResult.value,'/'),"?") />
+					<cfset stJSON["fullpath"] = stLoc.path />
+					<cfset stJSON["q"] = cgi.query_string />
+					
+					<cfif arguments.stMetadata.ftShowMetadata>
+						<cfset stImage = getImageInfo(stFixed.value,true) />
+						<cfset stJSON["size"] = round(stImage.size / 1024) />
+						<cfset stJSON["width"] = stImage.width />
+						<cfset stJSON["height"] = stImage.height />
+					<cfelse>
+						<cfset stJSON["size"] = 0 />
+						<cfset stJSON["width"] = 0 />
+						<cfset stJSON["height"] = 0 />
+					</cfif>
+					
+					<cfset onFileChange(typename=arguments.typename,objectid=arguments.stObject.objectid,stMetadata=arguments.stMetadata,value=stFixed.value) />
+				</cfif>
+				
+				<cfif isdefined("url.callback")>
+					<cfreturn "#url.callback#(#serializeJSON(stJSON)#)" />
+				<cfelse>
+					<cfreturn serializeJSON(stJSON) />
+				</cfif>
+			</cfif>
+		</cfif>
+		
+		<cfif isdefined("url.callback")>
+			<cfreturn "#url.callback#({})" />
+		<cfelse>
+			<cfreturn "{}" />
+		</cfif>
+	</cffunction>	
+			
+			
+			
+		<cffunction name="fixImage" access="public" output="false" returntype="struct" hint="Fixes an image's size, returns true if the image needed to be corrected and false otherwise">
+		<cfargument name="filename" type="string" required="true" hint="The image" />
+		<cfargument name="stMetadata" type="struct" required="true" hint="Property metadata" />
+		<cfargument name="resizeMethod" type="string" required="true" default="#arguments.stMetadata.ftAutoGenerateType#" hint="The resizing method to use to fix the size." />
+		<cfargument name="quality" type="string" required="true" default="#arguments.stMetadata.ftQuality#" hint="Quality setting to use for resizing" />
+		<cfargument name="bForceCrop" type="boolean" required="false" default="false" hint="Used to force the custom cropping" />
+		<cfargument name="bRotate" type="boolean" required="false" default="false" hint="Rotates image 90 deg" />
+	
+		<cfset var stGeneratedImageArgs = structnew() />
+		<cfset var stImage = getImageInfo(arguments.filename) />
+		<cfset var stGeneratedImage = structnew() />
+		<cfset var q = "" />
+		
+		<cfparam name="arguments.stMetadata.ftCropPosition" default="center" />
+		<cfparam name="arguments.stMetadata.ftCustomEffectsObjName" default="imageEffects" />
+		<cfparam name="arguments.stMetadata.ftLCustomEffects" default="" />
+		<cfparam name="arguments.stMetadata.ftConvertImageToFormat" default="" />
+		<cfparam name="arguments.stMetadata.ftbSetAntialiasing" default="true" />
+		<cfparam name="arguments.stMetadata.ftInterpolation" default="blackman" />
+		<cfparam name="arguments.stMetadata.ftQuality" default="#arguments.quality#" />
+		<cfif not len(arguments.resizeMethod)><cfset arguments.resizeMethod = arguments.stMetadata.ftAutoGenerateType /></cfif>
+		
+		<cfset stGeneratedImageArgs.Source = arguments.filename />
+		<cfset stGeneratedImageArgs.Destination = arguments.filename />
+			
+		<cfset stGeneratedImageArgs.bRotate = arguments.bRotate />
+		
+		<cfif isNumeric(arguments.stMetadata.ftImageWidth)>
+			<cfset stGeneratedImageArgs.width = arguments.stMetadata.ftImageWidth />
+		<cfelse>
+			<cfset stGeneratedImageArgs.width = 0 />
+		</cfif>
+		
+		<cfif isNumeric(arguments.stMetadata.ftImageHeight)>
+			<cfset stGeneratedImageArgs.Height = arguments.stMetadata.ftImageHeight />
+		<cfelse>
+			<cfset stGeneratedImageArgs.Height = 0 />
+		</cfif>
+		
+		<cfset stGeneratedImageArgs.customEffectsObjName = arguments.stMetadata.ftCustomEffectsObjName />
+		<cfset stGeneratedImageArgs.lCustomEffects = arguments.stMetadata.ftLCustomEffects />
+		<cfset stGeneratedImageArgs.convertImageToFormat = arguments.stMetadata.ftConvertImageToFormat />
+		<cfset stGeneratedImageArgs.bSetAntialiasing = arguments.stMetadata.ftBSetAntialiasing />
+		<cfif not isValid("boolean", stGeneratedImageArgs.bSetAntialiasing)>
+			<cfset stGeneratedImageArgs.bSetAntialiasing = true />
+		</cfif>
+		<cfset stGeneratedImageArgs.interpolation = arguments.stMetadata.ftInterpolation />
+		<cfset stGeneratedImageArgs.quality = arguments.stMetadata.ftQuality />
+
+		<cfif structKeyExists(stImage, "interpolation") AND stImage.interpolation eq "highQuality">
+			<cfset stGeneratedImageArgs.interpolation = stImage.interpolation />
+		</cfif>
+	
+		<cfset stGeneratedImageArgs.bUploadOnly = false />
+		<cfset stGeneratedImageArgs.PadColor = arguments.stMetadata.ftPadColor />
+		<cfset stGeneratedImageArgs.ResizeMethod = arguments.resizeMethod />
+		
+		<cfif (
+				(stGeneratedImageArgs.width gt 0 and stGeneratedImageArgs.width gt stImage.width)
+		   		or (stGeneratedImageArgs.height gt 0 and stGeneratedImageArgs.height gt stImage.height)
+			)
+			and listfindnocase("forceresize,pad,center,topleft,topcenter,topright,left,right,bottomleft,bottomcenter,bottomright",stGeneratedImageArgs.ResizeMethod)>
+		   
+			<!--- image is too small - only generate image for specific methods --->
+			<cfset stGeneratedImage = GenerateImage(argumentCollection=stGeneratedImageArgs) />
+
+			<cfreturn passed(stGeneratedImage.filename) />
+			
+		<cfelseif (stGeneratedImageArgs.width gt 0 and stGeneratedImageArgs.width lt stImage.width)
+			or (stGeneratedImageArgs.height gt 0 and stGeneratedImageArgs.height lt stImage.height)
+			or len(stGeneratedImageArgs.lCustomEffects)
+			or arguments.bForceCrop or arguments.bRotate>
+			
+			<cfset stGeneratedImage = GenerateImage(argumentCollection=stGeneratedImageArgs) />
+			<cfreturn passed(stGeneratedImage.filename) />
+			
+		<cfelse>
+			<cfreturn passed(arguments.filename) />
+		</cfif>
+	</cffunction>	
+			
+			
+			
+			<cffunction name="GenerateImage" access="public" output="false" returntype="struct">
+		<cfargument name="source" type="string" required="true" hint="The absolute path where the image that is being used to generate this new image is located." />
+		<cfargument name="destination" type="string" required="false" default="" hint="The absolute path where the image will be stored." />
+		<cfargument name="width" type="numeric" required="false" default="0" hint="The maximum width of the new image." />
+		<cfargument name="height" type="numeric" required="false" default="0" hint="The maximum height of the new image." />
+		<cfargument name="autoGenerateType" type="string" required="false" default="FitInside" hint="How is the new image to be generated (ForceSize,FitInside,Pad)" />
+		<cfargument name="padColor" type="string" required="false" default="##ffffff" hint="If AutoGenerateType='Pad', image will be padded with this colour" />
+		<cfargument name="customEffectsObjName" type="string" required="true" default="imageEffects" hint="The object name to run the effects on (must be in the package path)" />
+		<cfargument name="lCustomEffects" type="string" required="false" default="" hint="List of methods to run for effects with their arguments and values. The methods are order dependant replecting how they are listed here. Example: ftLCustomEffects=""roundCorners();reflect(opacity=40,backgroundColor='black');""" />
+		<cfargument name="convertImageToFormat" type="string" required="false" default="" hint6="Convert image to a specific format. Set value to image extension. Example: 'gif'. Leave blank for no conversion. Default=blank (no conversion)" />
+		<cfargument name="bSetAntialiasing" type="boolean" required="true" default="true" hint="Use Antialiasing (better image, but slower performance)" />
+		<cfargument name="interpolation" type="string" required="true" default="blackman" hint="set the interpolation level on the image compression" />
+		<cfargument name="quality" type="string" required="false" default="0.8" hint="Quality of the JPEG destination file. Applies only to files with an extension of JPG or JPEG. Valid values are fractions that range from 0 through 1 (the lower the number, the lower the quality). Examples: 1, 0.9, 0.1. Default = 0.8" />
+		<cfargument name="bUploadOnly" type="boolean" required="false" default="false" hint="The image file will be uploaded with no image optimization or changes." />
+		<cfargument name="bSelfSourced" type="boolean" required="false" default="false" hint="The image file will be uploaded with no image optimization or changes." />
+		<cfargument name="ResizeMethod" type="string" required="true" default="" hint="The y origin of the crop area. Options are center, topleft, topcenter, topright, left, right, bottomleft, bottomcenter, bottomright" />
+		<cfargument name="watermark" type="string" required="false" default="" hint="The path relative to the webroot of an image to use as a watermark." />
+		<cfargument name="watermarkTransparency" type="string" required="false" default="90" hint="The transparency to apply to the watermark." />
+		<cfargument name="bRotate" type="boolean" required="false" default="false" hint="Will rotate the image 90deg" />
+		
+		<cfset var stResult = structNew() />
+		<cfset var imageDestination = "" />
+		<cfset var newImage = "" />
+		<cfset var cropXOrigin = 0 />
+		<cfset var cropYOrigin = 0 />
+		<cfset var padImage = imageNew() />
+		<cfset var XCoordinate = 0 />
+		<cfset var YCoordinate = 0 />
+		<cfset var stBeveledImage = structNew() />
+		<cfset var widthPercent = 0 />
+		<cfset var heightPercent = 0 />
+		<cfset var usePercent = 0 />
+		<cfset var pixels = 0 />
+		<cfset var bModified = false />
+		<cfset var oImageEffects = "" />
+		<cfset var aMethods = "" />
+		<cfset var i = "" />
+		<cfset var lArgs = "" />
+		<cfset var find = "" />
+		<cfset var methodName = "" />
+		<cfset var stArgCollection = structNew() />
+		<cfset var argName = "" />
+		<cfset var argValue = "" />
+		<cfset var objWatermark = "" />
+		<cfset var argsIndex = "" />
+		<cfset var stImage = "" />
+
+		<cfset stResult.bSuccess = true />
+		<cfset stResult.message = "" />
+		<cfset stResult.filename = "" />
+		
+		<cfif not application.fc.lib.cdn.ioFileExists(location="images",file=arguments.source)>
+			<cfset stResult.bSuccess = False />
+			<cfset stResult.message = "File doesn't exist" />
+			<cfreturn stResult />
+		</cfif>
+
+		<cfif stResult.bSuccess>
+			<cfset stImage = getImageInfo(file=arguments.source,admin=true) />
+			<cfif structKeyExists(stImage, "interpolation") AND stImage.interpolation eq "highQuality">
+				<cfset arguments.interpolation = stImage.interpolation />
+			</cfif>
+		</cfif>
+		
+		<!---
+		FTAUTOGENERATETYPE OPTIONS
+		ForceSize - Ignores source image aspect ratio and forces the new image to be the size set in the metadata width/height
+		FitInside - Reduces the width and height so that it fits in the box defined by the metadata width/height
+		CropToFit - A bit of both "ForceSize" and "FitInside" where it forces the image to conform to a fixed width and hight, but crops the image to maintain aspect ratio. It first attempts to crop the width because most photos are taken from a horizontal perspective with a better chance to remove a few pixels than from the header and footer.
+		Pad - Reduces the width and height so that it fits in the box defined by the metadata width/height and then pads the image so it ends up being the metadata width/height
+		--->
+		
+		<cfif arguments.source eq arguments.destination>
+			<cfset imageDestination = arguments.destination />
+			<cfset arguments.bSelfSourced = true />
+		<cfelseif refind("\.\w+$",arguments.destination)>
+			<cfset imageDestination = arguments.destination />
+		<cfelse>
+			<cfset imageDestination = arguments.destination & "/" & listlast(arguments.source,"/\") />
+		</cfif>
+		
+		<!--- Image has changed --->
+		<cftry>
+			<!--- Read image into memory --->
+			<cfset newImage = application.fc.lib.cdn.ioReadFile(location="images",file=arguments.source,datatype="image") />
+			<cfif arguments.bSetAntialiasing is true>
+				<cfset ImageSetAntialiasing(newImage,"on") />
+			</cfif>
+			
+			<cfcatch type="any">
+				<cftrace type="warning" text="Minimum version of ColdFusion 8 required for cfimage tag manipulation. Using default image.cfc instead" />
+				<!--- Should we abort here with a dump? --->
+				<cfdump var="#cfcatch#" expand="true" label="" /><cfabort />
+				<cfset stResult = createObject("component", "farcry.core.packages.formtools.image").GenerateImage(Source=arguments.Source, Destination=arguments.Destination, Width=arguments.Width, Height=arguments.Height, AutoGenerateType=arguments.AutoGenerateType, PadColor=arguments.PadColor) />
+				<cfreturn stResult />
+			</cfcatch>
+		</cftry>
+		
+		<cfif arguments.bUploadOnly is true>
+			<!--- We do not want to modify the file, so exit now --->
+			<cfset stResult.filename = application.fc.lib.cdn.ioCopyFile(source_location="images",source_file=arguments.source,dest_location="images",dest_file=imageDestination,nameconflict="makeunique",uniqueamong="images") /> 
+			<cfreturn stResult />
+		</cfif>
+		
+		<cfswitch expression="#arguments.ResizeMethod#">
+		
+			<cfcase value="ForceSize">
+				<!--- Simply force the resize of the image into the width/height provided --->
+				<cfset imageResize(newImage,arguments.Width,arguments.Height,"#arguments.interpolation#") />
+			</cfcase>
+			
+			<cfcase value="FitInside">
+				<!--- If the Width of the image is wider than the requested width, resize the image in the correct proportions to be the width requested --->
+				<cfif arguments.Width gt 0 and newImage.width gt arguments.Width>
+					<cfset imageScaleToFit(newImage,arguments.Width,"","#arguments.interpolation#") />
+				</cfif>
+				
+				<!--- If the height of the image (after the previous width setting) is taller than the requested height, resize the image in the correct proportions to be the height requested --->
+				<cfif arguments.Height gt 0 and newImage.height gt arguments.Height>
+					<cfset imageScaleToFit(newImage,"",arguments.Height,"#arguments.interpolation#") />
+				</cfif>
+			</cfcase>
+			
+			<cfcase value="CropToFit">
+				<!--- First we try to crop the width because most photos are taken with a horizontal perspective --->
+				
+				<!--- If the height of the image (after the previous width setting) is taller than the requested height, resize the image in the correct proportions to be the height requested --->
+				<cfif newImage.height gt arguments.Height>
+					<cfset imageScaleToFit(newImage,"",arguments.Height,"#arguments.interpolation#") />
+					<cfif newImage.width gt arguments.Width>
+						<!--- Find where to start on the X axis, then crop (either use ceiling() or fix() ) --->
+						<cfset cropXOrigin = ceiling((newImage.width - arguments.Width)/2) />
+						<cfset ImageCrop(newImage,cropXOrigin,0,arguments.Width,arguments.Height) />
+					</cfif>
+					
+					<!--- Else If the Width of the image is wider than the requested width, resize the image in the correct proportions to be the width requested --->
+				<cfelseif newImage.width gt arguments.Width>
+					<cfset imageScaleToFit(newImage,arguments.Width,"","#arguments.interpolation#") />
+					<cfif newImage.height gt arguments.Height>
+						<!--- Find where to start on the Y axis (either use ceiling() or fix() ) --->
+						<cfset cropYOrigin = ceiling((newImage.height - arguments.Height)/2) />
+						<cfset ImageCrop(newImage,0,cropYOrigin,arguments.Width,arguments.Height) />
+					</cfif>
+				</cfif>
+			</cfcase>
+	
+			<cfcase value="Pad">
+				<!--- Scale To Fit --->
+				<cfset imageScaleToFit(newImage,arguments.Width,arguments.Height,"#arguments.interpolation#") />
+				
+				<!--- Check if either the new height or new width is smaller than the arugments width and height. If yes, then padding is needed --->
+				<cfif newImage.height lt arguments.Height or newImage.width lt arguments.Width>
+					<!--- Create a temp image with background color = PadColor --->
+					<cfset padImage = ImageNew("",arguments.Width,arguments.Height,"rgb",arguments.PadColor) />
+					<!--- Because ImageScaleToFit doesn't always work correctly (it may make the width or height it used to scale by smaller than it should have been... usually by 1 pixel) we need to account for that becfore we paste --->
+					<!--- Either use ceiling() or fix() depending on which side you want the extra pixeled padding on (This won't be a problem if Adobe fixes the bug in ImageScaleToFit in a future version of ColdFusion) --->
+					<cfset XCoordinate = ceiling((arguments.Width - newImage.Width)/2) />
+					<cfset YCoordinate = ceiling((arguments.Height - newImage.height)/2) />
+					<!--- Paste the scaled image over the new drawn image --->
+					<cfset ImagePaste(padImage,newImage,XCoordinate,YCoordinate) />
+					<cfset newImage = imageDuplicate(padImage) />
+				</cfif>
+			</cfcase>
+			
+			<cfcase value="center,topleft,topcenter,topright,left,right,bottomleft,bottomcenter,bottomright">
+				<!--- Resize image without going over crop dimensions--->
+				<!--- Permission for original version of aspectCrop() method given by authors Ben Nadel and Emmet McGovern --->
+				<cfset widthPercent = arguments.Width / newImage.width>
+				<cfset heightPercent = arguments.Height / newImage.height>
+				
+				<cfif widthPercent gt heightPercent>
+					<cfset usePercent = widthPercent>
+					<cfset pixels = newImage.width * usePercent + 1>
+					<cfset cropYOrigin = ((newImage.height - arguments.Height)/2)>
+					<cfset imageResize(newImage,pixels,"",arguments.interpolation) />
+				<cfelse>
+					<cfset usePercent = heightPercent>
+					<cfset pixels = newImage.height * usePercent + 1>
+					<cfset cropXOrigin = ((newImage.width - arguments.Height)/2)>
+					<cfset imageResize(newImage,"",pixels,arguments.interpolation) />
+				</cfif>
+				
+				<!--- Set the xy offset for cropping, if not provided defaults to center --->
+				<cfif listfindnocase("topleft,left,bottomleft", arguments.ResizeMethod)>
+					<cfset cropXOrigin = 0>
+				<cfelseif listfindnocase("topcenter,center,bottomcenter", arguments.ResizeMethod)>
+					<cfset cropXOrigin = (newImage.width - arguments.Width)/2>
+				<cfelseif listfindnocase("topright,right,bottomright", arguments.ResizeMethod)>
+					<cfset cropXOrigin = newImage.width - arguments.Width>
+				<cfelse>
+					<cfset cropXOrigin = (newImage.width - arguments.Width)/2>
+				</cfif>
+				
+				<cfif listfindnocase("topleft,topcenter,topright", arguments.ResizeMethod)>
+					<cfset cropYOrigin = 0>
+				<cfelseif listfindnocase("left,center,right", arguments.ResizeMethod)>
+					<cfset cropYOrigin = (newImage.height - arguments.Height)/2>
+				<cfelseif listfindnocase("bottomleft,bottomcenter,bottomright", arguments.ResizeMethod)>
+					<cfset cropYOrigin = newImage.height - arguments.Height>
+				<cfelse>
+					<cfset cropYOrigin = (newImage.height - arguments.Height)/2>  
+				</cfif> 
+				
+				<cfset ImageCrop(newImage,cropXOrigin,cropYOrigin,arguments.Width,arguments.Height)>
+			</cfcase> 
+			
+			<cfdefaultcase>
+				<cfif refind("^\d+,\d+-\d+,\d+$",arguments.resizeMethod)>
+					<cfset pixels = listtoarray(arguments.resizeMethod,",-") />
+					<cfset ImageCrop(newImage,pixels[1],pixels[2],pixels[3]-pixels[1],pixels[4]-pixels[2]) />
+					
+					<!--- If the Width of the image is wider than the requested width, resize the image in the correct proportions to be the width requested --->
+					<cfif arguments.Width gt 0 and pixels[3]-pixels[1] gt arguments.Width>
+						<cfset imageScaleToFit(newImage,arguments.Width,"","#arguments.interpolation#") />
+					</cfif>
+					
+					<!--- If the height of the image (after the previous width setting) is taller than the requested height, resize the image in the correct proportions to be the height requested --->
+					<cfif arguments.Height gt 0 and pixels[4]-pixels[2] gt arguments.Height>
+						<cfset imageScaleToFit(newImage,"",arguments.Height,"#arguments.interpolation#") />
+					</cfif>
+				</cfif>
+			</cfdefaultcase>
+			
+		</cfswitch>
+	
+		<!--- Apply Image Effects --->
+		<cfif len(arguments.customEffectsObjName) and len(arguments.lCustomEffects)>
+			<cfset oImageEffects = createObject("component", "#evaluate("application.formtools.#customEffectsObjName#.packagePath")#") />
+			
+			<!--- Covert the list to an array --->
+			<cfset aMethods = listToArray(trim(arguments.lCustomEffects), ";") />
+			
+			<!--- Loop over array --->
+			<cfloop index="i" array="#aMethods#">
+				<cfset i = trim(i) />
+				<cfset lArgs = "" />
+				<cfset find = reFindNoCase("[^\(]+", i, 0, true) />
+				<cfset methodName = mid(i, find.pos[1], find.len[1]) />
+				<cfset find = reFindNoCase("\(([^\)]+)\)", i, 0, true) />
+				<!--- Check if arguments exist --->
+				<cfif arrayLen(find.pos) gt 1>
+					<cfset lArgs = trim(mid(i, find.pos[2], find.len[2])) />
+				</cfif>
+				<cfset stArgCollection = structNew() />
+				<cfset stArgCollection.oImage = newImage />
+				<cfloop index="argsIndex" list="#lArgs#" delimiters=",">
+					<cfset argName = trim(listGetAt(argsIndex,1,"=")) />
+					<cfset argValue = trim(listGetAt(argsIndex,2,"=")) />
+					<cfif len(argValue) gt 1 and left(argValue, 1) eq "'" and right(argValue, 1) eq "'">
+						<cfset argValue = left(argValue, len(argValue)-1) />
+						<!--- Allow blank values --->
+						<cfif len(argValue)-1 eq 0>
+							<cfset argValue = "" />
+						<cfelse>
+							<cfset argValue = right(argValue, len(argValue)-1) />
+						</cfif>
+					<cfelse>
+						<cfset argValue = evaluate(argValue) />
+					</cfif>
+					<cfset stArgCollection[argName] = argValue />
+				</cfloop>
+				<!--- Run method --->
+				<!--- <cfinvoke
+				  component = "#oImageEffects#"
+				  method = "#methodName#"
+				  returnVariable = "newImage"
+				  argumentCollection = "#stArgCollection#"> --->
+				<cfset oImageEffects.methodName = oImageEffects[methodName] />
+				<cfset newImage = oImageEffects.methodName(argumentCollection=stArgCollection) />
+			</cfloop>
+			
+			<cfset bModified = true />
+		</cfif>
+	
+		<cfif len(arguments.watermark) and fileExists("#application.path.webroot##arguments.watermark#")>
+		
+		
+			<!--- THANKS KINKY SOLUTIONS FOR THE FOLLOWING CODE (http://www.bennadel.com) --->
+			<!--- Read in the watermark. --->
+			<cfset objWatermark = ImageNew("#application.path.webroot##arguments.watermark#") />
+			
+			
+			<!---
+			Turn on antialiasing on the existing image
+			for the pasting to render nicely.
+			--->
+			<cfset ImageSetAntialiasing(newImage,"on") />
+			
+			<!---
+			When we paste the watermark onto the photo, we don't
+			want it to be fully visible. Therefore, let's set the
+			drawing transparency before we paste.
+			--->
+			<cfset ImageSetDrawingTransparency(newImage,arguments.watermarkTransparency) />
+	 
+			<!---
+			Paste the watermark on to the image. We are going
+			to paste this into the center.
+			--->
+			<cfset ImagePaste(newImage,objWatermark,(newImage.GetWidth() - objWatermark.GetWidth()) / 2,(newImage.GetHeight() - objWatermark.GetHeight()) / 2) />
+			
+			<cfset bModified = true />
+		</cfif>	
+				
+		<cfif arguments.bRotate>
+			<cftry>
+			<cfset ImageRotate(newImage, 90)>
+				<cfcatch><cfset ImageRotate(newImage, 91)><cfset ImageRotate(newImage, -1)></cfcatch>
+			</cftry>
+			
+			<cfset bModified = true />
+		</cfif>		
+				
+
+		<!--- Modify extension to convert image format --->
+		<cfif len(arguments.convertImageToFormat)>
+			<cfset ImageDestination = listSetAt(ImageDestination, listLen(ImageDestination, "."), replace(convertImageToFormat, ".", "", "all"), ".") />
+			<cfset bModified = true />
+		</cfif>
+		
+		<cfif arguments.ResizeMethod neq "none" or bModified>
+			<cfif NOT arguments.bSelfSourced>
+				<cfset stResult.filename = application.fc.lib.cdn.ioWriteFile(location="images",file=imageDestination,data=newImage,datatype="image",quality=arguments.quality,nameconflict="makeunique",uniqueamong="images") />
+			<cfelse>
+				<cfset stResult.filename = application.fc.lib.cdn.ioWriteFile(location="images",file=imageDestination,data=newImage,datatype="image",quality=arguments.quality,nameconflict="overwrite") />
+			</cfif>
+		<cfelse>
+			<cfset stResult.filename = imageDestination />
+		</cfif>
+		
+		<cfreturn stResult />
+	</cffunction>
 
 </cfcomponent>

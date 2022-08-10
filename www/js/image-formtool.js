@@ -308,6 +308,7 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
     			.find("a.image-crop-select-button,button.image-crop-select-button").bind("click",function onImageFormtoolCustomCrop(){ imageformtool.beginCrop(true); return false; }).end()
     			.find("a.image-crop-cancel-button,button.image-crop-cancel-button").bind("click",function onImageFormtoolCancelCrop(){ imageformtool.removeCrop(); return false; }).end()
     			.find("button.image-delete-button").bind("click",function onImageFormtoolDelete(){ imageformtool.deleteImage(); return false; }).end()
+				.find("a.rotate").bind("click",function onImageFormtoolRotate(){ imageformtool.rotateImage(); return false; }).end()
     			.find("button.image-deleteall-button").bind("click",function onImageFormtoolDeleteAll(){ imageformtool.deleteAllRelatedImages(); return false; }).end();
     		if (imageformtool.inline){
     			imageformtool.inlineview = $j("#"+prefix+property+"-inline")
@@ -656,6 +657,35 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 			
 			//delete source
 			imageformtool.deleteImage();
+		}
+		
+		this.rotateImage =  function imageFormtoolRotateImage(viewToShow){
+			//var afterDeleteView = viewToShow || "upload";
+			
+			//imageformtool.inputs.deletef.val("true");
+			
+			var postData = imageformtool.getPostValues();
+			postData.bRotate = true;
+			//console.log(postData);
+			//console.log(imageformtool.url);
+			if (imageformtool.sourceField.length) postData[imageformtool.sourceField] = '';
+			//imageformtool.multiview.selectView("working");
+			
+			$j.ajax({
+				type : "POST",
+				url : imageformtool.url,
+				data : postData,
+				success : function imageFormtoolRotateImageSuccess(results){
+					//imageformtool.multiview.selectView("complete");
+					//imageformtool.multiview.find('.image-cancel-upload, .image-custom-crop, .image-cancel-replace').hide();
+					$j(imageformtool).trigger("filechange", [results]);
+				},
+				error : function imageFormtoolDeleteImageError(XMLHttpRequest, textStatus, errorThrown){
+					$j(imageformtool).trigger("fileerror",[ "crop",textStatus,errorThrown.toString() ]);
+				},
+				dataType : "json"
+			});	
+			
 		}
 	};
 	
