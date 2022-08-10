@@ -19,6 +19,8 @@ This stores a JSON of RGB colours of the images to a string field. The first col
 
 ![Image](/www/images/color-palette.png)
 
+![Image](/www/images/palette-copy.png)
+
 aPalette = application.formtools.colorPalette.oFactory.getPalette('/images/dmImage/SourceImage/xxx.jpg',5)
 
 You can also convert the array of values into an RGB or RGBHEX string:
