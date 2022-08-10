@@ -7,7 +7,7 @@ This will replace the old Flash based uploader with a PLUPLOAD widget.
 * Drag'n Drop
 * Rotate Image (90deg clockwise)
 
-![Image](/www/images/uploader-image.png)
+![Image](/www/images/uploader-image2022.png)
 
 ## New FormTool : ColorPalette
 
