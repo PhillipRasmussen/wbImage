@@ -471,12 +471,12 @@
 		
 		<cfif structKeyExists(form,'bRotate')>
 			<cfparam name="form.bForceCrop" default="false">
-				
+				<cfset stImage = duplicate(arguments.stObject) />
 				<cfset stFixed = fixImage(form[arguments.stMetadata.name],arguments.stMetadata,'','',form.bForceCrop,form.bRotate) />
-				
+				<cfset stLoc = getFileLocation(stObject=stImage,stMetadata=arguments.stMetadata,admin=true) />
 				<cfset stJSON["value"] = stFixed.value />
 					<cfset stJSON["filename"] = listfirst(listlast(stFixed.value,'/'),"?") />
-					<cfset stJSON["fullpath"] = stFixed.value />
+					<cfset stJSON["fullpath"] = stLoc.path />
 				<cfreturn serializeJSON(stJSON)>
 		</cfif>		
 			
