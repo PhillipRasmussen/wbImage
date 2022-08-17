@@ -298,23 +298,39 @@
 							<div class="image-cancel-upload"><i class="fa fa-times-cirlce-o fa-fw"></i> <a href="##back" class="select-view">Cancel - I don't want to delete</a></div>
 						</div>
 						<cfif bFileExists>
+							<cfset cacheBuster = getNumericDate(now())>
 							<div id="#arguments.fieldname#_complete" class="complete-view">
 		    					<cfif len(readImageError)><div id="#arguments.fieldname#_readImageError" class="alert alert-error alert-error-readimg" style="margin-top:0.7em;margin-bottom:0.7em;">#readImageError#</div></cfif>
+								<div class="row">
+									<div class="span3 text-center">
+										<a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#?#cacheBuster#' style='max-width:400px; max-height:400px;' />" href="#imagePath#?#cacheBuster#" target="_blank">
+								<img src="#imagePath#?#cacheBuster#" style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;" class="previewWindow"></a>
+								</div>
+									<div class="span8">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<span class="image-filename">#listfirst(listlast(arguments.stMetadata.value,"/"),"?")#</span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#' style='max-width:400px; max-height:400px;' />" href="#imagePath#" target="_blank">Preview</a> | <a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
-								<cfif arguments.stMetadata.ftShowMetadata>
-									<i class="fa fa-info-circle-o fa-fw"></i> Size: <span class="image-size">#round(stImage.size / 1024)#</span>KB, Dimensions: <span class="image-width">#stImage.width#</span>px x <span class="image-height">#stImage.height#</span>px
+								<span class="image-filename">#listfirst(listlast(arguments.stMetadata.value,"/"),"?")#</span><br>(<a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br/>
+										<cfif arguments.stMetadata.ftShowMetadata>
+									<i class="fa fa-info-circle fa-fw"></i> Size: <span class="image-size">#round(stImage.size / 1024)#</span>KB, Dimensions: <span class="image-width">#stImage.width#</span>px x <span class="image-height">#stImage.height#</span>px
 									<div class="image-resize-information alert alert-info" style="padding:0.7em;margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>
 								</cfif>
+								</div></div>
+								
 							</div>
 						<cfelse>
 						    <div id="#arguments.fieldname#_complete" class="complete-view" style="display:none;">
+								<div class="row">
+									<div class="span3 text-center">
+								 <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='' style='max-width:400px; max-height:400px;' />" href="##" target="_blank">
+								<img src="" style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;" class="previewWindow"></a>
+								</div>
+									<div class="span8">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<span class="image-filename"></span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='' style='max-width:400px; max-height:400px;' />" href="##" target="_blank">Preview</a> | <a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
+								<span class="image-filename"></span> (<a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
 								<cfif arguments.stMetadata.ftShowMetadata>
-									<i class="fa fa-info-circle-o fa-fw"></i> Size: <span class="image-size"></span>KB, Dimensions: <span class="image-width"></span>px x <span class="image-height"></span>px
+									<i class="fa fa-info-circle fa-fw"></i> Size: <span class="image-size"></span>KB, Dimensions: <span class="image-width"></span>px x <span class="image-height"></span>px
 									<div class="image-resize-information alert alert-info" style="padding:0.7em;margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>
 								</cfif>
+										</div></div>
 							</div>
 						</cfif>
 					</div>

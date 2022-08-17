@@ -479,7 +479,8 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 						// if an error is returned from the server
 						$j(imageformtool).trigger("fileerror", ["upload", "500", results.error]);
 					} else {
-						imageformtool.inputs.base.val(results.value);				
+						imageformtool.inputs.base.val(results.value);
+						imageformtool.multiview.find('.previewWindow').attr('src',results.fullpath);
 						$j(imageformtool).trigger("filechange", [results]);
 					}; // end if
                 // Called when file has finished uploading
@@ -677,6 +678,10 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 				data : postData,
 				success : function imageFormtoolRotateImageSuccess(results){
 					//imageformtool.multiview.selectView("complete");
+					var cachebust = "?"+new Date().getTime();
+					imageformtool.inputs.base.val(results.value);
+					imageformtool.multiview.find('.previewWindow').attr('src',results.fullpath+cachebust);
+					
 					imageformtool.multiview.find('.rotate .fa').removeClass('fa-spin');
 					$j(imageformtool).trigger("filechange", [results]);
 				},
