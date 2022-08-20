@@ -304,11 +304,11 @@
 								<div class="row">
 									<div class="span3 text-center">
 										<a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#?#cacheBuster#' style='max-width:400px; max-height:400px;' />" href="#imagePath#?#cacheBuster#" target="_blank">
-								<img src="#imagePath#?#cacheBuster#" style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;" class="previewWindow"></a>
+								<img src="#imagePath#?#cacheBuster#" style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;transition: all .3s ease-in;" data-rotate="0" class="previewWindow"></a>
 								</div>
 									<div class="span8">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<span class="image-filename">#listfirst(listlast(arguments.stMetadata.value,"/"),"?")#</span><br>(<a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br/>
+								<span class="image-filename">#listfirst(listlast(arguments.stMetadata.value,"/"),"?")#</span><div style="margin:10px 0;"><a href="##rotate" class="rotate fc-richtooltip btn btn-primary btn-small" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a>  <a href="##upload" class="select-view btn btn-primary btn-small">Upload</a>  <a href="##delete" class="select-view btn btn-primary btn-small">Delete</a></div>
 										<cfif arguments.stMetadata.ftShowMetadata>
 									<i class="fa fa-info-circle fa-fw"></i> Size: <span class="image-size">#round(stImage.size / 1024)#</span>KB, Dimensions: <span class="image-width">#stImage.width#</span>px x <span class="image-height">#stImage.height#</span>px
 									<div class="image-resize-information alert alert-info" style="padding:0.7em;margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>
@@ -321,11 +321,11 @@
 								<div class="row">
 									<div class="span3 text-center">
 								 <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='' style='max-width:400px; max-height:400px;' />" href="##" target="_blank">
-								<img src="" style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;" class="previewWindow"></a>
+								<img src="" style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;transition: all .3s ease-in;" data-rotate="0" class="previewWindow"></a>
 								</div>
 									<div class="span8">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<span class="image-filename"></span> (<a href="##rotate" class="rotate fc-richtooltip" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a> | <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a> )<br>
+								<span class="image-filename"></span> <div style="margin:10px 0;"><a href="##rotate" class="rotate fc-richtooltip btn btn-primary btn-small" data-tooltip-position="bottom" data-toggle="tooltip" title="Rotate image 90deg"><i class="fa fa-repeat" aria-hidden="true"></i> Rotate</a>  <a href="##upload" class="select-view btn btn-primary btn-small">Upload</a>  <a href="##delete" class="select-view btn btn-primary btn-small">Delete</a></div>
 								<cfif arguments.stMetadata.ftShowMetadata>
 									<i class="fa fa-info-circle fa-fw"></i> Size: <span class="image-size"></span>KB, Dimensions: <span class="image-width"></span>px x <span class="image-height"></span>px
 									<div class="image-resize-information alert alert-info" style="padding:0.7em;margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>

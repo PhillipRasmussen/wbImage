@@ -679,8 +679,12 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 				success : function imageFormtoolRotateImageSuccess(results){
 					//imageformtool.multiview.selectView("complete");
 					var cachebust = "?"+new Date().getTime();
+					var rot = imageformtool.multiview.find('.previewWindow').data('rotate');
 					imageformtool.inputs.base.val(results.value);
-					imageformtool.multiview.find('.previewWindow').attr('src',results.fullpath+cachebust);
+					//imageformtool.multiview.find('.previewWindow').attr('src',results.fullpath+cachebust);
+					imageformtool.multiview.find('.previewWindow').css("transform", "rotate("+(rot+90)+"deg)");
+					imageformtool.multiview.find('.previewWindow').data('rotate',rot+90);
+					//imageformtool.multiview.find('.previewWindow');
 					
 					imageformtool.multiview.find('.rotate .fa').removeClass('fa-spin');
 					$j(imageformtool).trigger("filechange", [results]);
