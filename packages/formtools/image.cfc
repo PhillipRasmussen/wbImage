@@ -179,6 +179,24 @@
 			</cfif>
 		</cfif>
 
+			
+		<!--- Drag to here HTML --->
+		<cfsavecontent variable="htmlDrag"><cfoutput>
+			
+			<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative;display:flex;"><div class="info" style="text-align:center;margin:auto;"><i class="fa fa-upload fa-2x" aria-hidden="true" style="
+    opacity: .5;
+"></i><br>drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div>
+								<div style="position:absolute;bottom:2px;right:2px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
+
+								</div>
+			
+		</cfoutput></cfsavecontent>
+			
+<cfset cancelUploadButton = '<a href="##back" class="select-view btn btn-small" style="margin-top:3px"><i class="fa fa-times-circle-o fa-fw mt-2" ></i> Cancel - I don''t want to upload an image</a>'>	
+<cfset cancelDeleteButton = '<a href="##back" class="select-view btn btn-small" style="margin-top:5px"><i class="fa fa-times-circle-o"></i> Cancel - I don''t want to replace this image</a>'>
+			
+			
+			
 		<cfif len(arguments.stMetadata.ftSourceField)>
 
 			<!--- This image will be generated from the source field --->
@@ -193,13 +211,10 @@
 							<div id="#arguments.fieldname#_upload" class="upload-view" style="display:none;">
 								<!---<a href="##traditional" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw"></i></a>
 								<input type="file" name="#arguments.fieldname#NEW" id="#arguments.fieldname#NEW" />--->
-								<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative"><div class="info" style="text-align:center;margin-top:40px;">drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div>
-								<div style="position:absolute;bottom:2px;right:2px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
-
-								</div>
+								#htmlDrag#
 								<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
-								<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
-								<div class="image-cancel-upload" style="clear:both;"><i class="fa fa-times-cirlce-o fa-fw"></i> <a href="##back" class="select-view">Cancel - I don't want to upload an image</a></div>
+								<div class="alert small"><i title="#metadatainfo#" class="fa fa-question-circle fa-fw" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
+								<div class="image-cancel-upload" style="clear:both;">#cancelUploadButton#</div>
 							</div>
 							<div id="#arguments.fieldname#_traditional" class="traditional-view" style="display:none;">
 								<a href="##back" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw"></i></a>
@@ -210,7 +225,7 @@
 							<div id="#arguments.fieldname#_delete" class="delete-view" style="display:none;">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
 								<ft:button class="image-delete-button" id="#arguments.fieldname#DeleteThis" type="button" value="Delete this image" onclick="return false;" />
-								<div class="image-cancel-upload"><i class="fa fa-times-cirlce-o fa-fw"></i> <a href="##back" class="select-view">Cancel - I don't want to delete</a></div>
+								<div class="image-cancel-upload">#cancelDeleteButton#</div>
 							</div>
 						</cfif>
 						<div id="#arguments.fieldname#_autogenerate" class="autogenerate-view"<cfif len(arguments.stMetadata.value)> style="display:none;"</cfif>>
@@ -241,9 +256,11 @@
 								<cfif len(readImageError)><div id="#arguments.fieldname#_readImageError" class="alert alert-error alert-error-readimg" style="margin-top:0.7em;margin-bottom:0.7em;">#readImageError#</div></cfif>
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
 
-								<span class="image-filename">#filename#</span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#' style='max-width:400px; max-height:400px;' />" href="#imagePath#" target="_blank">Preview</a><span class="regenerate-link"> | <a href="##autogenerate" class="select-view">Regenerate</a></span> <cfif arguments.stMetadata.ftAllowUpload>| <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a></cfif> )<br>
+								<span class="image-filename small">#filename#</span><br> <a class="image-preview fc-richtooltip btn btn-primary btn-mini" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#' style='max-width:400px; max-height:400px;' />" href="#imagePath#" target="_blank"> <i class="fa fa-eye" aria-hidden="true"></i> Preview</a><span class="regenerate-link">  <a href="##autogenerate" class="select-view btn btn-primary btn-mini">Regenerate</a></span> <cfif arguments.stMetadata.ftAllowUpload> <a href="##upload" class="select-view btn btn-primary btn-mini">Upload</a>  <a href="##delete" class="select-view btn btn-primary btn-mini">Delete</a></cfif> <br>
 								<cfif arguments.stMetadata.ftShowMetadata>
-									<i class="fa fa-info-circle-o fa-fw"></i> Size: <span class="image-size">#round(stImage.size / 1024)#</span>KB, Dimensions: <span class="image-width">#stImage.width#</span>px x <span class="image-height">#stImage.height#</span>px
+									<div class="small" style="margin-top:5px">
+									<i class="fa fa-info-circle fa-fw"></i> Size: <span class="image-size">#round(stImage.size / 1024)#</span>KB, Dimensions: <span class="image-width">#stImage.width#</span>px x <span class="image-height">#stImage.height#</span>px
+									</div>
 									<div class="image-resize-information alert alert-info" style="margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>
 								</cfif>
 							</div>
@@ -274,11 +291,12 @@
 						<div id="#arguments.fieldname#_upload" class="upload-view s3upload"<cfif len(arguments.stMetadata.value)> style="display:none;"</cfif>>
 							<!---<a href="##traditional" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw">&nbsp;</i></a>
 							<input type="file" name="#arguments.fieldname#NEW" id="#arguments.fieldname#NEW" />--->
-
+							#htmlDrag#
+							<!---
 							<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative"><div class="info" style="text-align:center;margin-top:40px;">drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div>
 							<div style="position:absolute;bottom:2px;right:2px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
-							</div>
-
+							</div>--->
+							
 							<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
 							<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw fc-tooltip" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
 
