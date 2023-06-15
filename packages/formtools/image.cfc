@@ -189,7 +189,7 @@
 		<!--- Drag to here HTML --->
 		<cfsavecontent variable="htmlDrag"><cfoutput>
 
-			<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;height:100px;max-width: 500px;position:relative;display:flex;"><div class="info" style="text-align:center;margin:auto;"><i class="fa fa-upload fa-2x" aria-hidden="true" style="
+			<div id="#arguments.fieldname#Dropzone" style="border: 2px dashed ##ddd;border-radius:5px;height:100px;max-width: 500px;position:relative;display:flex;"><div class="info" style="text-align:center;margin:auto;"><i class="fa fa-upload fa-2x" aria-hidden="true" style="
     opacity: .5;
 "></i><br>drag to here</div><button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:2px;left:2px;">or Browse</button> <div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div>
 								<div style="position:absolute;bottom:2px;right:2px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
@@ -314,13 +314,13 @@ Select Exactly How To Crop Your Image
 							<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw fc-tooltip" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
 
 
-							<div class="image-cancel-upload" style="clear:both;<cfif not len(arguments.stMetadata.value)>display:none;</cfif>"><i class="fa fa-times-cirlce-o fa-fw"></i> cancelDeleteButton</div>
+							<div class="image-cancel-upload" style="clear:both;<cfif not len(arguments.stMetadata.value)>display:none;</cfif>"><i class="fa fa-times-cirlce-o fa-fw"></i> #cancelDeleteButton#</div>
 						</div>
 						<div id="#arguments.fieldname#_traditional" class="traditional-view" style="display:none;">
 							<a href="##back" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw">&nbsp;</i></a>
 							<input type="file" name="#arguments.fieldname#TRADITIONAL" id="#arguments.fieldname#TRADITIONAL" />
 							<div><i title="#metadatainfo#" class="fa fa-question-circle fa-fw" data-toggle="tooltip"></i> <span>Select an image to upload from your computer.</span></div>
-							<div class="image-cancel-upload" style="clear:both;<cfif not len(arguments.stMetadata.value)>display:none;</cfif>"><i class="fa fa-times-cirlce-o fa-fw"></i> cancelDeleteButton</div>
+							<div class="image-cancel-upload" style="clear:both;<cfif not len(arguments.stMetadata.value)>display:none;</cfif>"><i class="fa fa-times-cirlce-o fa-fw"></i> #cancelDeleteButton#</div>
 						</div>
 						<div id="#arguments.fieldname#_delete" class="delete-view" style="display:none;">
 							<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
