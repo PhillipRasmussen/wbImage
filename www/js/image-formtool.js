@@ -98,7 +98,7 @@
 })($j);
 
 (function(jQuery){
-	$fc.cropper = function cropperObject(sourceobject, url, width, height, postvalues, allowcancel){
+	$fc.cropper = function cropperObject(sourceobject, url, width, height, postvalues, allowcancel,autogeneratetype){
 		
 		var cropper = this;
 		
@@ -135,10 +135,15 @@
 			var $rn = jQuery("#image-crop-ratio-num");
 			var $rd = jQuery("#image-crop-ratio-den");
 			var $warning = jQuery("#image-crop-warning");
+			var $apectRatio = (width && height)?width/height:0;
+			
+			if (autogeneratetype.toLowerCase() == 'fitinside') {
+				$apectRatio = 0;
+			}
 			
 			jQuery("#cropable-image").Jcrop({
 				//"minSize" : [width,height],
-				"aspectRatio" : (width && height)?width/height:0,
+				"aspectRatio" : $apectRatio,
 				"boxWidth" : overlaywidth * 0.65,
 				"boxHeight" : overlayheight,
 				"onChange" : function onCropperSelectionChange(c){
@@ -234,13 +239,14 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 		this.views = {};
 		this.elements = {};
 		
-		this.init = function initImageFormtool(url,filetypes,sourceField,width,height,inline,sizeLimit){
+		this.init = function initImageFormtool(url,filetypes,sourceField,width,height,inline,sizeLimit,autogeneratetype){
 
 			imageformtool.url = url;
 			imageformtool.filetypes = filetypes;
 			imageformtool.sourceField = sourceField;
 			imageformtool.width = width;
 			imageformtool.height = height;
+			imageformtool.autogeneratetype = autogeneratetype;
 			imageformtool.inline = inline || false;
 			imageformtool.sizeLimit = sizeLimit || null;
 			
@@ -576,7 +582,7 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 		this.beginCrop = function imageFormtoolBeginCrop(allowcancel){
 			$j('#'+prefix+property+"_croperror").hide();
 
-			$fc.cropper(imageformtool,imageformtool.url,imageformtool.width,imageformtool.height,imageformtool.getPostValues(),allowcancel);
+			$fc.cropper(imageformtool,imageformtool.url,imageformtool.width,imageformtool.height,imageformtool.getPostValues(),allowcancel,imageformtool.autogeneratetype);
 			
 		};
 		

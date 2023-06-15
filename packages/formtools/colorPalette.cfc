@@ -26,16 +26,24 @@
 			arguments.stMetadata.ftStyle = 'display:none;';
 		</cfscript>
  
-	
-   
+	<!---
+   <cfdump var="#URL#">
+	  <cfdump var="#stObject#">
+--->
          
     <cfif structkeyexists(arguments.stMetadata,"ftWatch") and len(arguments.stMetadata.ftWatch) AND len(arguments.stObject[listfirst(arguments.stMetadata.ftWatch)]) >
+		<cfif stObject.colours EQ "">
 		<cfset aPalette = getPalette(arguments.stObject[listfirst(arguments.stMetadata.ftWatch)],arguments.stMetadata.ftPaletteSize)>
+		<cfset arguments.stMetadata.value = serializeJSON(aPalette)>
+		<cflog file="wbPalette" text="fired #now()#">
+		<cfelse>
+			<cfset aPalette = deserializeJSON(arguments.stMetadata.value)>
+		</cfif>
 		<cfloop from="1" to="#arrayLen(aPalette)#" index="i">
 		<cfset hex = createRGBHexString(aPalette[i])>
 		<cfset blocks = blocks&'<div rel="#hex#" class="color-block" style="background: #createRGBString(aPalette[i])#" title="#hex#" data-html="true"></div>'>
 		</cfloop>
-		<cfset arguments.stMetadata.value = serializeJSON(aPalette)>
+		
 		<cfset blocks = '<div class="palette">#blocks#</div>'>  
 			<cfsavecontent variable="styleAndJS">
 			<cfoutput>

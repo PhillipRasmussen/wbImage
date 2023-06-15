@@ -9,4 +9,8 @@
 							baseHREF="/farcry/plugins/wbImage/www/js/"
 							lFiles="image-formtool.js" />
 
+<skin:registerCSS	id="bs3-buttons" core="true"
+							baseHREF="/farcry/plugins/wbImage/www/css/"
+							lFiles="bs3-buttons.css" />	
+	
 <cfsetting enablecfoutputonly="no">
