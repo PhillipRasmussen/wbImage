@@ -4,10 +4,12 @@ Farcry wbImage Plugin
 This will replace the old Flash based uploader with a PLUPLOAD widget.
 
 ## Highlights
-* Drag'n Drop
-* Rotate Image (90deg clockwise)
+### Drag'n Drop
+  ![image](https://github.com/PhillipRasmussen/wbImage/assets/7389789/bd4c796b-29bf-4db4-9096-3510f1a1611f)
+### Rotate Image (90deg clockwise)
+![image](https://github.com/PhillipRasmussen/wbImage/assets/7389789/6cbff163-b98b-4c07-8a67-5b8d044cad8d)
 
-![Image](/www/images/uploader-image2022.png)
+
 
 ## New FormTool : ColorPalette
 
@@ -28,6 +30,7 @@ aPalette = application.formtools.colorPalette.oFactory.getPalette('/images/dmIma
 You can also convert the array of values into an RGB or RGBHEX string:
 application.formtools.colorPalette.oFactory.createRGBString([133,120,72]) = rgb(133,120,72)
 application.formtools.colorPalette.oFactory.createRGBHEXString([133,120,72]) = #857848
+application.formtools.colorPalette.oFactory.createRGBFromHEX('857848') = '133,120,72'
 
 Find the Luminosity
 application.formtools.colorPalette.oFactory.getRGBLum(aPalette[1]) returns int 0 - 255
