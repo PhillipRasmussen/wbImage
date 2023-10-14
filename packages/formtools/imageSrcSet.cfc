@@ -164,13 +164,12 @@
 						<cfset stImage = getImageInfo(file=aSrcSet[i].image,admin=true) />
 					
 						<cfset stResult = application.fc.lib.cdn.ioGetFileLocation(location="images",file=aSrcSet[i].image,admin=true,bRetrieve=true) />
-						<!---<cfdump var="#stresult#">
+						<!---<cfdump var="#stImage#">
+						<cfdump var="#stresult#">
 						
 						<cfset stResult = application.fc.lib.cdn.ioGetFileLocation(location="publicfiles",file=arguments.stObject[arguments.stMetadata.name], bRetrieve=arguments.bRetrieve) />
---->				<div style="width:100%;display:block;">#URLdecode(stResult.path)# #aSrcSet[i].width#px</div>
-					<!---
-					<div style="height:#40+(i*25)#px;aspect-ratio:#stImage.width#/#stImage.height#;background-image:url(#aSrcSet[1].image#);background-size:cover;background-position:center;display:flex" class="well"><p style="margin:auto auto 0 auto;background:black;color:white;width:100%;text-align:center;padding:3px 0;opacity:.7">#aSrcSet[i].width#px<br>#round(stImage.size / 1024)#KB</p></div>
---->
+--->				<div style="width:100%;display:block;">#URLdecode(stResult.path)# <span class="small">#aSrcSet[i].width#px #round(stImage.size / 1024)#KB</span></div>
+					
 					</cfloop>
 				</div>
 				</cfif>

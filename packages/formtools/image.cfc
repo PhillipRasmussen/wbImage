@@ -230,7 +230,7 @@
 							</div>
 							<div id="#arguments.fieldname#_delete" class="delete-view" style="display:none;">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<ft:button class="image-delete-button" id="#arguments.fieldname#DeleteThis" type="button" value="Delete this image" onclick="return false;" />
+								<ft:button class="image-delete-button btn btn-danger" id="#arguments.fieldname#DeleteThis" type="button"  value="Delete this image" onclick="return false;" />
 								<div class="image-cancel-upload">#cancelDeleteButton#</div>
 							</div>
 						</cfif>
@@ -280,9 +280,10 @@ Select Exactly How To Crop Your Image
 						<cfelse>
 							<div id="#arguments.fieldname#_complete" class="complete-view" style="display:none;">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-								<span class="image-filename"></span> ( <a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='' style='max-width:400px; max-height:400px;' />" href="##" target="_blank">Preview</a><span class="regenerate-link"> | <a href="##autogenerate" class="select-view">Regenerate</a></span> <cfif arguments.stMetadata.ftAllowUpload>| <a href="##upload" class="select-view">Upload</a> | <a href="##delete" class="select-view">Delete</a></cfif> )<br>
+								<span class="image-filename small"></span><br> <a class="image-preview fc-richtooltip btn btn-primary" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='' style='max-width:400px; max-height:400px;' />" href="##" target="_blank">Preview</a><span class="regenerate-link">  <a href="##autogenerate" class="select-view btn btn-primary">Regenerate</a></span> <cfif arguments.stMetadata.ftAllowUpload> <a href="##upload" class="select-view btn btn-primary">Upload</a>  <a href="##delete" class="select-view btn btn-primary">Delete</a></cfif> <br>
 								<cfif arguments.stMetadata.ftShowMetadata>
-									<i class="fa fa-info-circle-o fa-fw"></i> Size: <span class="image-size"></span>KB, Dimensions: <span class="image-width"></span>px x <span class="image-height"></span>px
+									<div class="small" style="margin-top:5px">
+									<i class="fa fa-info-circle-o fa-fw"></i> Size: <span class="image-size"></span>KB, Dimensions: <span class="image-width"></span>px x <span class="image-height"></span>px</div>
 									<div class="image-resize-information alert alert-info" style="margin-top:0.7em;display:none;">Resized to <span class="image-width"></span>px x <span class="image-height"></span>px (<span class="image-quality"></span>% quality)</div>
 								</cfif>
 							</div>
@@ -324,9 +325,9 @@ Select Exactly How To Crop Your Image
 						</div>
 						<div id="#arguments.fieldname#_delete" class="delete-view" style="display:none;">
 							<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
-							<ft:button class="image-delete-button" value="Delete this image" type="button" onclick="return false;" />
-							<ft:button class="image-deleteall-button" value="Delete this and the related images" type="button" onclick="return false;" />
-							<div class="image-cancel-upload"><i class="fa fa-times-cirlce-o fa-fw"></i> <a href="##back" class="select-view">Cancel - I don't want to delete</a></div>
+							<ft:button class="image-delete-button btn btn-danger" renderType="button" value="Delete this image" type="button" onclick="return false;" />
+							<ft:button class="image-deleteall-button btn btn-danger" value="Delete this and the related images" type="button" onclick="return false;" />
+							<div class="image-cancel-upload"><i class="fa fa-times-cirlce-o fa-fw"></i> #cancelDeleteButton#</div>
 						</div>
 						<cfif bFileExists>
 							<cfset cacheBuster = getNumericDate(now())>
