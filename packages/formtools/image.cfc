@@ -1251,4 +1251,89 @@ Select Exactly How To Crop Your Image
 	<cfargument name="lSizes" type="string" required="false" default="480,800,1200">
 </cffunction>
 
+
+<cffunction name="handleFileLocal" access="public" output="false" returntype="struct" hint="Handles using a local file as the new image and returns standard formtool result struct">
+		<cfargument name="objectid" type="uuid" required="true" hint="The objectid of the edited object" />
+		<cfargument name="existingfile" type="string" required="true" hint="Current value of property" />
+		<cfargument name="localfile" type="string" required="true" hint="The local file" />
+		<cfargument name="destination" type="string" required="true" hint="Destination of file" />
+		<cfargument name="allowedExtensions" type="string" required="true" hint="The acceptable extensions" />
+		<cfargument name="sizeLimit" type="numeric" required="false" default="0" hint="Maximum size of file in bytes" />
+		<cfargument name="bArchive" type="boolean" required="true" hint="True to archive old files" />
+		
+		<cfset var uploadFileName = "" />
+		<cfset var archivedFile = "" />
+		<cfset var stResult = passed(arguments.existingfile) />
+		<cfset var stFile = structnew() />
+		<cfset var i = 0 />
+		<cfset var errormessage = "" />
+		
+		<cfset stResult.bChanged = false />
+		
+		<!--- If developer has entered an ftDestination, make sure it starts with a slash --->
+		<cfif len(arguments.destination) AND left(arguments.destination,1) NEQ "/">
+			<cfset arguments.destination = "/#arguments.destination#" />
+		</cfif>
+		
+		<cfif not fileexists(arguments.localfile)>
+			<cfreturn failed(value=arguments.existingfile,message="Expected file does not exist [#arguments.localfile#]") />
+	  	</cfif>
+
+		<cfset errormessage = application.fc.lib.cdn.ioValidateFile(
+			localpath=arguments.localfile,
+			sizeLimit=arguments.sizeLimit,
+			acceptextensions=arguments.allowedExtensions,
+			existingFile=arguments.existingfile
+		) />
+		<cfif len(errormessage)>
+			<cfreturn failed(value=arguments.existingfile,message=errormessage) />
+		</cfif>
+
+		<cfif len(arguments.existingfile) and application.fc.lib.cdn.ioFileExists(location="images",file=arguments.existingfile)>
+			<cfif arguments.bArchive>
+				<cfset archivedFile = application.fc.lib.cdn.ioMoveFile(
+					source_location="images",
+					source_file=arguments.existingfile,
+					dest_location="archive",
+					dest_file="#arguments.destination#/#arguments.objectid#-#round(getTickCount()/1000)#-#listLast(arguments.existingfile, '/')#"
+				) />
+			<cfelse>
+				<cfset archivedFile = application.fc.lib.cdn.ioCopyFile(
+					source_location="images",
+					source_file=arguments.existingfile,
+					dest_localpath=getTempDirectory() & "#arguments.objectid#-#round(getTickCount()/1000)#-#listLast(arguments.existingfile, '/')#"
+				) />
+			</cfif>
+			
+		    <cfset stResult = passed("") />
+		    <cfset stResult.bChanged = true />
+    		
+			<!--- The new file must have the same name. --->
+			<cfset uploadFileName = listLast(arguments.existingfile, "/\") />
+			
+			<cfif not arguments.bArchive>
+				<cffile action="delete" file="#archivedFile#" />
+			</cfif>
+			
+			<cfset application.fc.lib.cdn.ioCopyFile(source_localpath=arguments.localfile,dest_location="images",dest_file=arguments.destination & "/" & uploadFilenName) />
+			<cfset stResult = passed("#arguments.destination#/#uploadFileName#") />
+			<cfset stResult.bChanged = true />
+			
+		<cfelse>
+			
+			<cfif arguments.sizeLimit and arguments.sizeLimit lt application.fc.lib.cdn.ioGetFileSize(location="images",file=listLast(arguments.existingfile, "/\"))>
+				<cfset stResult = failed(value=arguments.existingfile,message="#arguments.localfile# is not within the file size limit of #round(arguments.sizeLimit/1048576)#MB") />
+			<cfelseif listFindNoCase(arguments.allowedExtensions,listlast(arguments.localfile,"."))>
+				<cfset uploadFileName = application.fc.lib.cdn.ioMoveFile(source_localpath=arguments.localfile,dest_location="images",dest_file=arguments.destination & "/" & getFileFromPath(arguments.localfile),nameconflict="makeunique") />
+				<cfset stResult = passed(uploadFileName) />
+				<cfset stResult.bChanged = true />
+			<cfelse>
+				<cfset stResult = failed(value="",message="Images must have one of these extensions: #arguments.allowedExtensions#") />
+			</cfif>
+			
+		</cfif>
+		
+		<cfreturn stResult />
+	</cffunction>
+
 </cfcomponent>
