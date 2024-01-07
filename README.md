@@ -48,6 +48,13 @@ The goal for this formtool was:
 * To remove any modal actions to cutdown on javascript
 * To rely on HTMX where possible
 * Use CSRF tokens for all ajax calls
+
+
+
+https://github.com/PhillipRasmussen/wbImage/assets/7389789/8aa1ea0f-36d8-4c8b-9a38-6c8d61ce4762
+
+
+  
 ### Type="array"
 ```
 <cfproperty ftSeq="1" name="aImages" type="array" ftLabel="Images" 
