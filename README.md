@@ -49,7 +49,7 @@ The goal for this formtool was:
 * To rely on HTMX where possible
 * Use CSRF tokens for all ajax calls
 
-
+To obtain the ftAllowedExtensions and ftSizeLimit it looks for the ftJoin's ftSourceImage.
 
 https://github.com/PhillipRasmussen/wbImage/assets/7389789/8aa1ea0f-36d8-4c8b-9a38-6c8d61ce4762
 
