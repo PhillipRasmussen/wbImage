@@ -40,8 +40,9 @@
 	</cfloop>
 
 	<cfset stMetadata = application.fapi.getFormtool(stMetadata.type).prepMetadata(stObject = stobj, stMetadata = stMetadata) />
-
-<ft:form style="margin:0;display:none;">			
+<!---
+<ft:form style="margin:0;display:none;" class="test-form">	
+		
 	<cfoutput>
 	<!-- summary pod with green arrow -->
 	<div class="summary-pod" style="margin-bottom: 10px;">
@@ -49,8 +50,9 @@
 	</div>
 	<!-- summary pod end -->
 	</cfoutput>
-	</ft:form>
 	
+</ft:form>
+--->
 	<!--- FILTERING SETUP --->
 	<cfif not len(url.filterTypename)>
 		<cfset url.filterTypename = listFirst(stMetadata.ftJoin) />
@@ -82,19 +84,7 @@
 
 <cfoutput>
 <style>
-.image-grid {display:flex;flex-wrap:wrap;max-width:490px;gap:2px;}
-.library-image {width:80px;height:80px;object-fit: contain;border-radius:10px;cursor:pointer;position:relative;}
-.image-selected {position:relative}
-.image-selected .library-image {opacity:.5}
-.image-selected:after {
-	content:'';
-	position:absolute;
-	inset:0;
-	height:76px;
-	border:3px solid rgb(156 39 176);
-	border-radius:10px;
-	pointer-events: none;;
-}
+
 </style>
 
 <p class="small">Click on the images below to Add or Remove. 
@@ -108,19 +98,35 @@
     </cfoutput>	
 		
 		<cfoutput>
-			<form hx-post="/#formAction#" hx-target="closest .library" hx-swap="transition:true" hx-trigger="click, updateLibrary#url.property# from:body">
+			<div <!---hx-post="/#formAction#" hx-target="closest .library" hx-swap="transition:true" 
+			hx-trigger="this, updateLibrary#url.property# from:body"--->>
 				<div class="filter-field-wrap input-prepend input-append">
-					<input type="text" placeholder="Search Library..." id="searchTypename-#stobj.typename#-#url.property#-#url.filterTypename#" name="searchTypename" class="textInput" value="#local.searchTypename#" 
-					style="width:300px;border-radius:5px 0 0 5px" />
+					<input type="text" placeholder="Search Library..." id="searchTypename-#stobj.typename#-#url.property#-#url.filterTypename#" 
+					name="searchTypename" 
+					class="textInput" 
+					value="#local.searchTypename#" 
+					style="width:300px;border-radius:5px 0 0 5px" 
+					hx-post="/#formAction#" 
+					hx-target="closest .library"
+					 hx-swap="transition:true" 
+					hx-trigger="change,keyup changed delay:1s,updateLibrary#url.property# from:body"
+					hx-on:keydown="if(event.key === 'Enter'){event.preventDefault();}"
+					/>
 					<cfif len(form.searchTypename)>
-						<button style="height: 30px; border-radius:0; font-size: 20px; font-weight: bold; padding: 0px 10px;" onClick="$j('##searchTypename-#stobj.typename#-#url.property#-#url.filterTypename#').attr('value',''); $j('##submit-#stobj.typename#-#url.property#-#url.filterTypename#').click(); return false;" class="btn" type="button">&times;</button>
+						<div
+						class="clear-search btn"
+						style="height: 30px; border-radius:0; font-size: 20px; font-weight: bold; padding: 0px 10px;" 
+						onClick="$j('##searchTypename-#stobj.typename#-#url.property#-#url.filterTypename#').attr('value','');htmx.trigger('##searchTypename-#stobj.typename#-#url.property#-#url.filterTypename#', 'change'); return false;">&times;</div>
 					</cfif>
-					<button id="submit-#stobj.typename#-#url.property#-#url.filterTypename#" style="line-height: 20px; border-radius:0 5px 5px 0;padding-top:2px" class="btn btn-primary" ><i class="fa fa-search only-icon"></i></button>
+					<div 
+					onclick='htmx.trigger("##searchTypename-#stobj.typename#-#url.property#-#url.filterTypename#", "change");'
+					id="submit-#stobj.typename#-#url.property#-#url.filterTypename#" style="line-height: 20px; border-radius:0 5px 5px 0;padding-top:2px" 
+					class="btn btn-primary" ><i class="fa fa-search only-icon"></i></div>
 					<script>
 						document.getElementById("searchTypename-#stobj.typename#-#url.property#-#url.filterTypename#").focus();
 					</script>
 				</div>
-			</form>
+			</div>
 		</cfoutput>
 		
 		

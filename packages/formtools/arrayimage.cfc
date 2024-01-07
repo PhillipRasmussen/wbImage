@@ -236,6 +236,7 @@
 <cfif structkeyexists(url,"action") and url.action eq "edit-save">
 	<cfset stImage = application.fapi.getContentObject(url.imageid) />
 	<cfset stImage['title'] = application.fc.lib.esapi.encodeForHTML(form.imagetitle)>
+	<cfset stImage['label'] = stImage['title']>
 	<cfset application.fapi.setData(typename=arguments.typename,objectid=url.imageid,stproperties=stImage) />	
 	<cfset application.fapi.stream(content='#getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stImage)#',type="json",status="200") /> 
 </cfif>
@@ -460,7 +461,7 @@
 				.arrayImageMain {display:flex;gap:20px;}
 				.dropzone {color:hsl(194 100% 50% / 1);border: 2px dashed rgb(98 218 255);border-radius:10px;height:100px;max-width: 525px;position:relative;display:flex;}
 				.dropzone.drag-on {border: 2px solid rgb(98 218 255)}
-				.libraryDiv:has(form) {border: 2px dashed rgb(98 218 255);border-radius:10px;padding:10px;width:490px;}
+				.libraryDiv:has(input) {border: 2px dashed rgb(98 218 255);border-radius:10px;padding:10px;width:490px;}
 
 				.image-list {margin:1rem 0;display:flex;max-width: 600px;flex-wrap: wrap;}
 
@@ -520,7 +521,20 @@
 				transform: rotate(359deg);
 				}
 				}
-
+				/* Library style */
+				.image-grid {display:flex;flex-wrap:wrap;max-width:490px;gap:2px;}
+.library-image {width:80px;height:80px;object-fit: contain;border-radius:10px;cursor:pointer;position:relative;}
+.image-selected {position:relative}
+.image-selected .library-image {opacity:.5}
+.image-selected:after {
+	content:'';
+	position:absolute;
+	inset:0;
+	height:76px;
+	border:3px solid rgb(156 39 176);
+	border-radius:10px;
+	pointer-events: none;;
+}
 				</style>
 			</cfoutput>			
 			</skin:htmlHead>
@@ -568,10 +582,10 @@
 						</div>
 						<!--- image sort --->
 						<cfset local.urlImageSort = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=imageSort&t=#t#'>
-						<div id="imageSort"
+						<div id="#arguments.fieldname#_imageSort" 
 						hx-post="#local.urlImageSort#"
 						hx-include=".image-list"
-						hx-target="closest .image-list"
+						hx-target="previous .image-list"
 						hx-swap="innerHTML"
 						hx-trigger="sortStopped"
 						 />
@@ -621,7 +635,7 @@
 						{
   							stop: function( event, ui ) {
 								console.log('sort stopped');
-								htmx.trigger("##imageSort", "sortStopped")
+								htmx.trigger("###arguments.fieldname#_imageSort", "sortStopped")
 							}
 						}
 					);
