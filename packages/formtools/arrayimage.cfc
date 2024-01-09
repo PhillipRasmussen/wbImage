@@ -16,6 +16,9 @@
 	<cfproperty name="ftAllowRotate" required="false" default="false" 
 		type="boolean"
 		hint='Can the Image be rotated.'>
+	<cfproperty name="ftAutoLabelField" required="false" default="" 
+		type="string"
+		hint='The Field to Auto Name the image from.'>
 	
 
 
@@ -257,13 +260,12 @@
 					</cfif>
 				</cfloop>
 				<cfloop from="1" to="#arraylen(aImageFields)#" index="i">
-				<!---%%%% change this so it only rotates the source image %%%%%--->
+				<!--- this only rotates the SourceImage and then deletes the others so they can be rebuilt using ImageAutoGenerateBeforeSave --->
 				<cfif aImageFields[i] EQ 'SourceImage'>
 					<cfset stFixed = application.formtools.image.oFactory.fixImage(stImage[aImageFields[i]],stProps[aImageFields[i]].METADATA,'','',false,true) />
 				<cfelse>
 
-					<cfif application.fc.lib.cdn.ioFileExists(location="images",file="#stImage[aImageFields[i]]#")>
-						
+					<cfif application.fc.lib.cdn.ioFileExists(location="images",file="#stImage[aImageFields[i]]#")>						
 						<cfset application.fc.lib.cdn.ioDeleteFile(location="images",file="#stImage[aImageFields[i]]#") />
 					</cfif>
 					<cfset stImage[aImageFields[i]] = ''>
@@ -342,23 +344,26 @@
 		</cfcatch>
 	</cftry>
 
-    <cfsavecontent variable="stresult" >
+    <cfsavecontent variable="html" >
            <cfoutput>
            <cfif structkeyexists(stResult, "files") and arraylen(stResult.files)>
-           		<cfset statuscode="286" ><!--- identifies the ststaus as complete --->
+           		<cfset statuscode="286" ><!--- identifies the status as complete --->
 				<cfheader name="HX-Trigger" value="updateLibrary#replace(arguments.fieldname,prefix,'')#">	<!--- triggers the library to update --->
 				<cftry>
 				#getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stFile.stObject,false)# 
-				<cfcatch><cfdump var="#arguments#"></cfcatch> 
+				<cfcatch><cfdump var="#cfcatch.message#"></cfcatch> 
 				</cftry>     
            <cfelse>
-           		<cfset statuscode="200" >				    
+           		<cfset statuscode="200" >
+				<!---<cfdump var="#stResult#">
+					
+				<cfoutput><input type="hidden" name="#arguments.fieldname#"  value="#stImage.objectid#" /></cfoutput>	--->		    
            </cfif>
            
            
             </cfoutput>
-        </cfsavecontent>
-	<cfset application.fapi.stream(content=stResult,type="html",status="#statuscode#") /> 
+    </cfsavecontent>
+	<cfset application.fapi.stream(content=html,type="html",status="#statuscode#") />
 	<!---<cfset application.fapi.stream(content=stResult,type="json") />--->
 </cfif>
 
@@ -622,11 +627,16 @@
 					<script type="text/javascript">
 					htmx.on("htmx:load", function(evt) { /* fired whenever an htmx call is loaded */
 						//console.log('added');
-						$j('.tooltip').remove();
+						$j('.tooltip,.ui-tooltip').remove();
 						$j('.delete-image,.rotate-image,.library-image,.image-preview,.edit-image').tooltip();
 					});
+					htmx.on("click", function(evt) { /* fired whenever an htmx call is loaded */
+						//console.log('added');
+						$j('.tooltip,.ui-tooltip').remove();
+						
+					});
 					htmx.on("htmx:beforeCleanupElement", function(evt) {
-						console.log('swapp');
+						//console.log('swapp');
 						//$j('###arguments.fieldname#-multiview .alert-error').hide();
 						
 					});
@@ -634,7 +644,7 @@
 					$j('###arguments.fieldname#-multiview .image-list').sortable(
 						{
   							stop: function( event, ui ) {
-								console.log('sort stopped');
+								//console.log('sort stopped');
 								htmx.trigger("###arguments.fieldname#_imageSort", "sortStopped")
 							}
 						}

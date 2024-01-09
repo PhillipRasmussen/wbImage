@@ -335,9 +335,9 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
                         // now add the image
                         //console.log('upload complete add thumb');
 						if (imageformtool.fileLimit == 1) {
-							imageformtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-target="this" hx-swap="innerHTML"></div>');
+							imageformtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						} else {
-							imageformtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-target="this" hx-swap="innerHTML"></div>');
+							imageformtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						}
                         
                         htmx.process('#thumb-'+results.files[0].objectid);

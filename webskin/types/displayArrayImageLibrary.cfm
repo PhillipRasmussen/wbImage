@@ -73,7 +73,7 @@
 
 	<cfset qResult = application.fapi.getContentType(stMetadata.ftLibraryDataTypename).getLibraryRecordset(primaryID=stObj.objectid, primaryTypename=stObj.typename, stMetadata=stMetadata, filterType=url.filterTypename, filter=local.searchTypename) />
 
-	<cfset closeAction = application.url.webroot & "index.cfm?type=#stobj.typename#&objectid=#stobj.objectid#&view=displayArrayImageButton&filterTypename=#url.filterTypename#&property=#url.property#&ajax=1&fieldname=#url.fieldname#&t=#t#" />
+	<cfset closeAction = application.url.webroot & "index.cfm?type=#stobj.typename#&objectid=#stobj.objectid#&view=displayArrayImageButton&filterTypename=#url.filterTypename#&property=#url.property#&ajaxmode=1&fieldname=#url.fieldname#&t=#t#" />
     <cfset formAction = application.url.webroot & "index.cfm?type=#stobj.typename#&objectid=#stobj.objectid#&view=displayArrayImageLibrary&filterTypename=#url.filterTypename#&property=#url.property#&ajaxmode=1&fieldname=#url.fieldname#&t=#t#" />
 
 <!---<cfparam name="arrayImage['#stobj.typename#']['#url.property#']['#url.filterTypename#']" default="#isArray(stobj[url.property])?arrayToList(stobj[url.property]):stobj[url.property]#" >
