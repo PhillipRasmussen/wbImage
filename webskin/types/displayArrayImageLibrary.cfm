@@ -13,10 +13,9 @@
 <cfimport taglib="/farcry/core/tags/admin" prefix="admin" />
 
 <cfset request.fc.inwebtop = true />
-<cfset t = CSRFGenerateToken()/>
-<cfparam name="url.t" default="" >
 
-<cfif application.fapi.isLoggedIn() AND CSRFVerifyToken(url.t)>
+
+<cfif application.fapi.isLoggedIn() AND structkeyexists(getHttpRequestData().headers,"T") AND CSRFVerifyToken(getHttpRequestData().headers["T"])>
 	<cfparam name="url.property" type="string" />
 	<cfparam name="url.filterTypename" type="string" default="" />
 	<cfparam name="lSelected" type="string" default=""/>
@@ -73,8 +72,8 @@
 
 	<cfset qResult = application.fapi.getContentType(stMetadata.ftLibraryDataTypename).getLibraryRecordset(primaryID=stObj.objectid, primaryTypename=stObj.typename, stMetadata=stMetadata, filterType=url.filterTypename, filter=local.searchTypename) />
 
-	<cfset closeAction = application.url.webroot & "index.cfm?type=#stobj.typename#&objectid=#stobj.objectid#&view=displayArrayImageButton&filterTypename=#url.filterTypename#&property=#url.property#&ajaxmode=1&fieldname=#url.fieldname#&t=#t#" />
-    <cfset formAction = application.url.webroot & "index.cfm?type=#stobj.typename#&objectid=#stobj.objectid#&view=displayArrayImageLibrary&filterTypename=#url.filterTypename#&property=#url.property#&ajaxmode=1&fieldname=#url.fieldname#&t=#t#" />
+	<cfset closeAction = application.url.webroot & "index.cfm?type=#stobj.typename#&objectid=#stobj.objectid#&view=displayArrayImageButton&filterTypename=#url.filterTypename#&property=#url.property#&ajaxmode=1&fieldname=#url.fieldname#" />
+    <cfset formAction = application.url.webroot & "index.cfm?type=#stobj.typename#&objectid=#stobj.objectid#&view=displayArrayImageLibrary&filterTypename=#url.filterTypename#&property=#url.property#&ajaxmode=1&fieldname=#url.fieldname#" />
 
 <!---<cfparam name="arrayImage['#stobj.typename#']['#url.property#']['#url.filterTypename#']" default="#isArray(stobj[url.property])?arrayToList(stobj[url.property]):stobj[url.property]#" >
 <cfoutput>session.arrayImage['#stobj.objectid#']['#url.property#']['#url.filterTypename#']</cfoutput>
@@ -147,12 +146,14 @@
 		stObject=stobj,
 		stMetadata=stMetadata,
 		fieldname=url.fieldname,
-		combined=true)&'/t/#t#'>
+		combined=true)>
 		
 		<!---
 			#theURL#
 			<cfdump var="#url#" >--->
-		
+		<cfif NOT qResult.recordCount>
+			<cfoutput>No Results. Try a different search.</cfoutput>
+		</cfif>
 
 		<!--- DISPLAY THE SELECTION OPTIONS --->	
 		<skin:pagination query="#qResult#"			
@@ -194,25 +195,22 @@
 			</cfif>
            
 		</skin:pagination>
-         <cfoutput>
-				
-		</cfoutput>
+       
 
 
 
 		<cfoutput>
-        <!---
-			<script type="text/javascript">
-			$j(function(){
-				fcForm.initLibrary('#stobj.typename#','#stobj.objectid#','#url.property#');
-				fcForm.selections.reinitpage();
-			});
-			</script>
-            ---></div>
+       		</div>
 		</cfoutput>
 		
 	
-
+<cfelseif application.fapi.isLoggedIn()>
+<cfoutput>
+	<div class="small alert alert-info" style="border-radius:10px;">
+		Library can't be loaded.<br>
+		Save and Edit again to continue making changes.
+	</div>
+</cfoutput>
 	
 
 </cfif>

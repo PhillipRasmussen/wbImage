@@ -44,7 +44,6 @@
 		<cfset var sourceField = "" />
 		<cfset var html = "" />
 		<cfset var json = "" />
-		<cfset var t = CSRFGenerateToken()/>
 		
 		<cfset var stJSON = structnew() />
 	    <cfset var prefix = left(arguments.fieldname,len(arguments.fieldname)-len(arguments.stMetadata.name)) />
@@ -54,7 +53,7 @@
 			<cfset arguments.stMetadata.ftLimit = 1>
 		</cfif>
 
-		<cfif NOT structKeyExists(url,'t') OR NOT CSRFVerifyToken(url.t)>
+		<cfif NOT structkeyexists(getHttpRequestData().headers,"T") OR NOT CSRFVerifyToken(getHttpRequestData().headers["T"])>
 			<cfset application.fapi.stream(content='No Action Occured',type="html",status="200") />
 			<cfabort> 
 		</cfif>
@@ -99,7 +98,7 @@
 				<!--- session only object for webskins --->
 				<cfset fileObjectID = application.fapi.getUUID()>
 				<cfset application.fapi.setData(typename=arguments.typename,objectid=fileObjectID,bSessionOnly="true") />				
-				<cfset theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'/action/status/uploader/#jobid#/uploaderid/#arguments.fieldname#/t/#t#'>
+				<cfset theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'/action/status/uploader/#jobid#/uploaderid/#arguments.fieldname#'>
 				<cfset stResult = structnew() />
 				<cfset stResult["files"] = arraynew(1) />
 				<cfset stResult["files"][1] = structnew() />
@@ -205,7 +204,7 @@
 <cfif structkeyexists(url,"action") and url.action eq "edit">
 	<cfset stImage = application.fapi.getContentObject(url.imageid) />
 	
-	<cfset theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'/t/#t#'>
+	<cfset theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)>
 	<cfsavecontent variable="theHTML">
 	<cfoutput>
 		<div class="image-edit-box">
@@ -388,7 +387,7 @@
 		<cfset var cancelUploadButton = '<a href="##back" class="select-view btn btn-warning" style="margin-top:3px"><i class="fa fa-times-circle-o fa-fw mt-2" ></i> Cancel - I don''t want to upload an image</a>'>
 		<cfset var cancelDeleteButton = '<a href="##back" class="select-view btn btn-warning" style="margin-top:5px"><i class="fa fa-times-circle-o"></i> Cancel - I don''t want to replace this image</a>'>
 		<cfset var prefix = left(arguments.fieldname,len(arguments.fieldname)-len(arguments.stMetadata.name)) />
-		<cfset var t = CSRFGenerateToken()/>
+		<cfset var csrfToken = CSRFGenerateToken()/>
 
 		<cfset arguments.stMetadata.ftShowMetadata = 0>
 		<cfset arguments.stMetadata.FTALLOWEDEXTENSIONS = 'jpg,jpeg,png,gif'>
@@ -547,7 +546,7 @@
 		    <cfsavecontent variable="html"><cfoutput>
 				
 				
-				<div class="arrayImageMain">
+				<div class="arrayImageMain" hx-headers='{"t": "#csrfToken#"}'>
 				<div class="multiField" style="width:550px;">
 				
 				
@@ -568,7 +567,7 @@
 						</div>
 						
 						
-						<cfset local.urlImageList = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=imageList&t=#t#'>
+						<cfset local.urlImageList = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=imageList'>
 						
 						<div class="image-list"
 						hx-post="#local.urlImageList#"
@@ -586,7 +585,7 @@
 						
 						</div>
 						<!--- image sort --->
-						<cfset local.urlImageSort = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=imageSort&t=#t#'>
+						<cfset local.urlImageSort = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=imageSort'>
 						<div id="#arguments.fieldname#_imageSort" 
 						hx-post="#local.urlImageSort#"
 						hx-include=".image-list"
@@ -607,13 +606,14 @@
 						<div class="library" style="position:relative">
 							
 							<div 
-							hx-post="/index.cfm?type=#arguments.typename#&objectid=#arguments.stObject.objectid#&view=displayArrayImageLibrary&property=#arguments.stMetadata.name#&fieldname=#arguments.fieldname#&t=#t#" 
+							hx-post="/index.cfm?type=#arguments.typename#&objectid=#arguments.stObject.objectid#&view=displayArrayImageLibrary&property=#arguments.stMetadata.name#&fieldname=#arguments.fieldname#" 
 							hx-target='closest .library'
 							hx-trigger="click"
-							class="btn btn-primary"
+							class="btn btn-primary btn-sm"
 							>
-								Select from Library
+								Select from Library <i class="fa fa-th" style="margin-left:.5em" aria-hidden="true"></i> 
 							</div>
+							
 						</div>
 					</div>
 					</cfif>
@@ -621,7 +621,7 @@
 					
 
 
-					<cfset local.url = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=upload&t=#t#'>
+					<cfset local.url = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=upload'>
 					
 
 					<script type="text/javascript">
@@ -707,10 +707,9 @@
 	<cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
 	<cfargument name="stImage" type="struct" required="yes">
 	<cfargument name="bIncludeOuter" type="boolean" default="1" required="no">
-
 	<cfset var HTML = "">
 	<cfset var cacheBuster = getNumericDate(now())>
-	<cfset var theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'/t/#t#'>
+	<cfset var theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)>
 							<cfsavecontent variable="html" >
 							<cftry>															
 							<cfoutput>

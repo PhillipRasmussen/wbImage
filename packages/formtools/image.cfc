@@ -1320,8 +1320,7 @@ Select Exactly How To Crop Your Image
 			<cfset stResult.bChanged = true />
 			
 		<cfelse>
-			
-			<cfif arguments.sizeLimit and arguments.sizeLimit lt application.fc.lib.cdn.ioGetFileSize(location="images",file=listLast(arguments.existingfile, "/\"))>
+			<cfif arguments.sizeLimit and arguments.sizeLimit lt getFileInfo(arguments.localfile).size>
 				<cfset stResult = failed(value=arguments.existingfile,message="#arguments.localfile# is not within the file size limit of #round(arguments.sizeLimit/1048576)#MB") />
 			<cfelseif listFindNoCase(arguments.allowedExtensions,listlast(arguments.localfile,"."))>
 				<cfset uploadFileName = application.fc.lib.cdn.ioMoveFile(source_localpath=arguments.localfile,dest_location="images",dest_file=arguments.destination & "/" & getFileFromPath(arguments.localfile),nameconflict="makeunique") />
@@ -1329,11 +1328,14 @@ Select Exactly How To Crop Your Image
 				<cfset stResult.bChanged = true />
 			<cfelse>
 				<cfset stResult = failed(value="",message="Images must have one of these extensions: #arguments.allowedExtensions#") />
-			</cfif>
+			</cfif> 
 			
 		</cfif>
 		
 		<cfreturn stResult />
 	</cffunction>
+
+
+
 
 </cfcomponent>
