@@ -54,7 +54,7 @@ START WEBSKIN
 					<cfset stLink = getLink(i) />
 					
 					<cfif getCurrentPage() EQ stLink.page>
-						<li class="active">#renderHTMXLink(linkid=i, bIncludeSpan=0)#</li>
+						<li class="active">#renderHTMXLink(linkid=i, bIncludeSpan=0,fieldname=arguments.stParam.fieldname)#</li>
 					<cfelse>
 						<li>#renderHTMXLink(linkid=i, bIncludeSpan=0)#</li>
 					</cfif>
@@ -112,6 +112,7 @@ START WEBSKIN
 	<cfargument name="style" default="" /><!--- Allows a style to be added to the link --->
 	<cfargument name="id" default="" /><!--- Allows an id to be added to the link --->
 	<cfargument name="bIncludeSpan" default="true" /><!--- Add span tag around disabled links --->
+	<cfargument name="fieldname" default="" /><!--- The fieldname of this formtool --->
 	
 	<cfset var stLink = getLink(arguments.linkID) />
 	<cfset var result = "" />
@@ -136,7 +137,7 @@ START WEBSKIN
 				<cfset stLink.href = REReplace(stLink.href,'/action/\w*','/action/none')> <!--- removes and action for ajax calls --->
 				<span hx-post="#stLink.href#" 
 					hx-target='closest .library' 
-					hx-trigger="updateLibrary from:body"
+					hx-trigger="updateLibrary#arguments.fieldname# from:body"
 					class="#stLink.class# #arguments.class#" 
 					style="#arguments.style#;" title="#arguments.title#">
 					#arguments.linktext#

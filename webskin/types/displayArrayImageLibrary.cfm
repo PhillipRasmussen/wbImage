@@ -164,7 +164,7 @@
 			r_stObject="stCurrentRow"
   			bDisplayTotalRecords="true"
             linksWebskin="displayHTMXLinks"
-			top="true" bottom="false" >
+			top="true" bottom="false" fieldname="#url.property#" >
             <cfset stImage = application.fapi.getcontentobject(typename="#url.filterTypename#",objectid="#stCurrentRow.objectid#")>
             
 

@@ -111,7 +111,7 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 		this.views = {};
 		this.elements = {};
 		
-		this.init = function initImageFormtool(url,filetypes,sourceField,width,height,inline,sizeLimit,autogeneratetype,filedataname,filelimit){
+		this.init = function initImageFormtool(url,filetypes,sourceField,width,height,inline,sizeLimit,autogeneratetype,filedataname,filelimit,token){
 
 			imageformtool.url = url;
 			imageformtool.filetypes = filetypes;
@@ -123,6 +123,7 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 			imageformtool.sizeLimit = sizeLimit || null;
 			imageformtool.filedataname = filedataname || property+'NEW';
 			imageformtool.fileLimit = Number(filelimit) || 0;
+			imageformtool.token = token;
 			
 			imageformtool.inputs.resizemethod  = $j('#'+prefix+property+'RESIZEMETHOD');
 			imageformtool.inputs.quality  = $j('#'+prefix+property+'QUALITY');
@@ -235,6 +236,7 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 			imageformtool.elements.uploader = new plupload.Uploader({
 				runtimes:'html5',
 				browse_button: imageformtool.elements.dropzone /*imageformtool.elements.browse*/,
+				headers:{t:imageformtool.token},
 				url : url,
 				multi_selection: true,
 				file_data_name: imageformtool.filedataname,

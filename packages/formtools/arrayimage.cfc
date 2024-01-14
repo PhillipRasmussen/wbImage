@@ -2,7 +2,7 @@
 
     <cfimport taglib="/farcry/core/tags/formtools/" prefix="ft" >
 	<cfimport taglib="/farcry/core/tags/webskin/" prefix="skin" >
-
+	<cfproperty name="ftAllowCreate" required="false" default="true" options="true,false" hint="Allows user drag and drop"/>
     <cfproperty name="ftJoin" required="true" default="" 
 		options="comma separated list of types"
 		hint="A single related content type e.g 'dmImage'">
@@ -19,6 +19,8 @@
 	<cfproperty name="ftAutoLabelField" required="false" default="" 
 		type="string"
 		hint='The Field to Auto Name the image from.'>
+
+	
 	
 
 
@@ -409,11 +411,10 @@
 	    
 
 
-
-		<skin:loadJS id="plupload" />
-
-	    <skin:loadJS id="jquery-crop" />
-	    <skin:loadCSS id="jquery-crop" />
+		<cfif arguments.stMetadata.ftAllowCreate>
+			<skin:loadJS id="plupload" />
+		</cfif>
+	   
 	    <skin:loadCSS id="fc-fontawesome" />
 
 	    <skin:loadCSS id="image-formtool" />
@@ -463,11 +464,11 @@
 			<cfoutput>
 			<style>
 				.arrayImageMain {display:flex;gap:20px;}
-				.dropzone {color:hsl(194 100% 50% / 1);border: 2px dashed rgb(98 218 255);border-radius:10px;height:100px;max-width: 525px;position:relative;display:flex;}
+				.dropzone {color:hsl(194 100% 50% / 1);border: 2px dashed rgb(98 218 255);border-radius:10px;height:100px;max-width: 525px;position:relative;display:flex;margin-bottom:1rem}
 				.dropzone.drag-on {border: 2px solid rgb(98 218 255)}
-				.libraryDiv:has(input) {border: 2px dashed rgb(98 218 255);border-radius:10px;padding:10px;width:490px;}
+				.libraryDiv:has(input) {border: 2px solid rgb(98 218 255);border-radius:10px;padding:10px;width:490px;}
 
-				.image-list {margin:1rem 0;display:flex;max-width: 600px;flex-wrap: wrap;}
+				.image-list {margin-bottom:1rem;display:flex;max-width: 600px;flex-wrap: wrap;}
 
 				.image-thumb {display:flex;width:80px;height:80px;margin-right:10px;background:rgb(196 241 255);border-radius:10px;position:relative;margin-bottom: 20px;}
 				.image-thumb:not(:has(a)) {border:1px solid rgb(98 218 255)}
@@ -555,9 +556,11 @@
 					<!---<input type="hidden" name="#arguments.fieldname#" id="#arguments.fieldname#" value="" />--->
 					<div id="#arguments.fieldname#-multiview" style="position:relative;">
 						<div id="#arguments.fieldname#_upload" class="upload-view s3upload">
-						
+							<cfif arguments.stMetadata.ftAllowCreate>
 							#htmlDrag#
-						
+							<cfelseif arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20 GT 1>
+								<p class="small">Max of #arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20# Images</p>
+							</cfif>
 
 							<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
 							
@@ -573,7 +576,7 @@
 						hx-post="#local.urlImageList#"
 						hx-trigger="load,libraryUpdated#replace(arguments.fieldname,prefix,'')# from:body"
 						hx-swap="transition:true"
-						<cfif arguments.stMetadata.ftLimit EQ 1>
+						<cfif arguments.stMetadata.ftLimit EQ 1 AND arguments.stMetadata.ftAllowCreate>
 						style="width: 90px;
     position: absolute;
     top: 10px;
@@ -650,7 +653,7 @@
 						}
 					);
 					$j('.delete-image,.rotate-image,.edit-image').tooltip();
-					
+					<cfif arguments.stMetadata.ftAllowCreate>
 					$fc.imageformtool('#prefix#','#arguments.stMetadata.name#')
 					.init(
 					'#local.url#'
@@ -660,8 +663,8 @@
 					,0<!---#arguments.stMetadata.ftImageHeight#--->
 					,false
 					,#structKeyExists(stImageProps,arguments.stMetadata.ftSourceImage)?stImageProps[arguments.stMetadata.ftSourceImage].metadata.ftSizeLimit:stMetadata.ftSizeLimit# /* size limit */
-					,'<!---#arguments.stMetadata.ftAutoGenerateType#--->','file',#stMetadata.ftLimit?stMetadata.ftLimit:20#);
-					
+					,'<!---#arguments.stMetadata.ftAutoGenerateType#--->','file',#arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20#,'#csrfToken#');
+					</cfif>
 					</script>
 					
 					
