@@ -149,7 +149,8 @@
 
 	    <skin:loadCSS id="image-formtool" />
 		<skin:loadJS id="image-formtool" />
-		<skin:loadCSS id="bs3-buttons" />
+		<skin:loadCSS id="bs3-buttons" />		
+		
 		
 
 		<cfoutput>
@@ -253,7 +254,14 @@ Select Exactly How To Crop Your Image
 									<div class="alert alert-info image-crop-information" style="padding:0.7em;margin-top:0.7em;display:none;">Your crop settings will be applied when you save. <a href="##" class="image-crop-cancel-button">Cancel custom crop</a></div>
 								</div>
 							</cfif>
-							<div style="margin-top:.5rem"><i class="fa fa-cloud-upload fa-fw"></i> <cfif arguments.stMetadata.ftAllowUpload><a href="##upload" class="select-view btn btn-primary" style="margin-top:5px;">Upload - I want to use my own image</a></cfif><span class="image-cancel-replace" style="clear:both;<cfif not len(arguments.stMetadata.value)>display:none;</cfif>"><cfif arguments.stMetadata.ftAllowUpload>  </cfif>#cancelDeleteButton#<!---<a href="##complete" class="select-view">Cancel - I don't want to replace this image</a>---></span></div>
+							<div style="margin-top:.5rem">
+								<cfif arguments.stMetadata.ftAllowUpload>
+									<a href="##upload" class="select-view btn btn-primary" style="margin-top:5px;">
+										<i class="fa fa-cloud-upload fa-fw"></i> Upload - I want to use my own image
+									</a>
+								</cfif>
+								<span class="image-cancel-replace" style="clear:both;<cfif not len(arguments.stMetadata.value)>display:none;</cfif>"><cfif arguments.stMetadata.ftAllowUpload>  </cfif>#cancelDeleteButton#<!---<a href="##complete" class="select-view">Cancel - I don't want to replace this image</a>---></span>
+							</div>
 						</div>
 						<div id="#arguments.fieldname#_working" class="working-view" style="display:none;">
 							<span class="image-status" title="#metadatainfo#"><i class="fa fa-spinner fa-spin fa-fw"></i></span>

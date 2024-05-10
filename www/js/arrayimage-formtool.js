@@ -313,13 +313,14 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 				UploadProgress: function(up, file) {
                 // Called while file is being uploaded
                 //console.log('[UploadProgress]', 'File:', file, "Total:", up.total);
+				console.log(up.total);
 					$j('#'+prefix+property+"_uploaderror").hide();
 					if ($j('#'+imageformtool.elements.dropzone+' div.info .fa-spinner').length == 0) {
-						$j('#'+imageformtool.elements.dropzone+' div.info').html('<i class="fa fa-spinner fa-spin fa-fw"></i>');
+						$j('#'+imageformtool.elements.dropzone+' div.info').html('<i class="fa fa-spinner fa-spin fa-fw"></i><span></span>');
 					}
-					
+					$j('#'+imageformtool.elements.dropzone+' div.info span').text((up.total.done+1)+' of '+up.files.length+' uploading '+file.percent+'%');
 					$j('#'+imageformtool.elements.browse).hide();
-					$j('#'+imageformtool.elements.stop).show();
+					//$j('#'+imageformtool.elements.stop).show();
 				},	
 				
 				FileUploaded: function(up, file, result) {
@@ -337,9 +338,9 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
                         // now add the image
                         //console.log('upload complete add thumb');
 						if (imageformtool.fileLimit == 1) {
-							imageformtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-target="this" hx-swap="innerHTML transition:false"></div>');
+							imageformtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						} else {
-							imageformtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-target="this" hx-swap="innerHTML transition:false"></div>');
+							imageformtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						}
                         
                         htmx.process('#thumb-'+results.files[0].objectid);
@@ -359,11 +360,40 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 				}
 		  }); /// end plupload
 				imageformtool.elements.uploader.init();
+
+			// this function will clear all current items in the queue but the current uploading file will continue on. 
 			$j('#'+imageformtool.elements.stop).on('click',function(){
-				imageformtool.elements.uploader.stop();
-				$j('#'+imageformtool.elements.dropzone+' div.info').html('drag to here');
-				$j('#'+imageformtool.elements.browse).show();
-				$j('#'+imageformtool.elements.stop).hide();
+				console.log(imageformtool.elements.uploader);
+				
+				//imageformtool.elements.uploader.stop();
+				// loop through files and remove them
+				//imageformtool.elements.uploader.splice(2);
+				//imageformtool.elements.uploader.refresh();
+				//imageformtool.elements.uploader.stop();
+				//imageformtool.elements.uploader.start();
+				//imageformtool.elements.uploader.refresh();	
+				
+						
+				/*
+				for (const file in imageformtool.elements.uploader.files) {
+					// Runs 5 times, with values of step 0 through 4.
+					imageformtool.elements.uploader.removeFile(file);
+				  }
+				  */
+				//imageformtool.elements.uploader.stop();
+				
+				//imageformtool.elements.uploader.start();
+				imageformtool.elements.uploader.splice();
+				imageformtool.elements.uploader.refresh();
+				
+				//console.log(imageformtool.elements.uploader);
+				//imageformtool.elements.uploader.start();
+				
+				//$j('#'+imageformtool.elements.dropzone+' div.info').html('<i class="fa fa-upload fa-2x" aria-hidden="true" style="opacity: .5;"></i><br>drag to here<br>or click to browse');
+				//$j('#'+imageformtool.elements.browse).show();
+				//$j('#'+imageformtool.elements.stop).hide();
+				
+				
 			});
 			$j('#'+imageformtool.elements.dropzone).on('dragenter dragover',function(){$j(this).addClass('drag-on');})
 			$j('#'+imageformtool.elements.dropzone).on('dragleave drop',function(){$j(this).removeClass('drag-on');})

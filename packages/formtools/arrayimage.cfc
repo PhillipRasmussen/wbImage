@@ -19,6 +19,8 @@
 	<cfproperty name="ftAutoLabelField" required="false" default="" 
 		type="string"
 		hint='The Field to Auto Name the image from.'>
+	<cfproperty name="ftLibaryPosition" required="false" default="side" type="string"
+		hint="Where the libary appears either side or below">
 
 	
 	
@@ -50,8 +52,9 @@
 		<cfset var stJSON = structnew() />
 	    <cfset var prefix = left(arguments.fieldname,len(arguments.fieldname)-len(arguments.stMetadata.name)) />
 		<cfset var aImages = session.arrayImage[arguments.stObject.objectid][replace(arguments.fieldname,prefix,'')][listFirst(stMetadata.ftJoin)]>
+		<cfset var oData = {} />
 
-		<cfif arguments.stMetadata.type eq "string">
+		<cfif arguments.stMetadata.type eq "string" OR arguments.stMetadata.type eq "uuid">
 			<cfset arguments.stMetadata.ftLimit = 1>
 		</cfif>
 
@@ -204,8 +207,7 @@
 </cfif>
 
 <cfif structkeyexists(url,"action") and url.action eq "edit">
-	<cfset stImage = application.fapi.getContentObject(url.imageid) />
-	
+	<cfset stImage = application.fapi.getContentObject(url.imageid) />	
 	<cfset theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)>
 	<cfsavecontent variable="theHTML">
 	<cfoutput>
@@ -239,9 +241,19 @@
 
 <cfif structkeyexists(url,"action") and url.action eq "edit-save">
 	<cfset stImage = application.fapi.getContentObject(url.imageid) />
+	<cfset oData = createObject("component", application.stcoapi[stImage.typename].packagepath) />
 	<cfset stImage['title'] = application.fc.lib.esapi.encodeForHTML(form.imagetitle)>
 	<cfset stImage['label'] = stImage['title']>
-	<cfset application.fapi.setData(typename=arguments.typename,objectid=url.imageid,stproperties=stImage) />	
+	<!---<cfset application.fapi.setData(typename=arguments.typename,objectid=url.imageid,stproperties=stImage) />
+	--->
+	<cfquery datasource="#application.dsn#">
+		update #stImage.typename#
+		SET title = <cfqueryparam cfsqltype="varchar" value="#form.imagetitle#">, label = <cfqueryparam cfsqltype="varchar" value="#form.imagetitle#">,
+		DATETIMELASTUPDATED = now(),LASTUPDATEDBY = '#application.security.getCurrentUserID()#'	
+		WHERE objectid = '#stImage.objectid#'	
+	</cfquery>
+	<!---<cfset application.fapi.flushCache(stImage.typename)>--->
+	<cfset application.fc.lib.objectbroker.RemoveFromObjectBroker(stImage.objectid,stImage.typename) />
 	<cfset application.fapi.stream(content='#getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stImage)#',type="json",status="200") /> 
 </cfif>
 
@@ -350,9 +362,15 @@
            <cfif structkeyexists(stResult, "files") and arraylen(stResult.files)>
            		<cfset statuscode="286" ><!--- identifies the status as complete --->
 				<cfheader name="HX-Trigger" value="updateLibrary#replace(arguments.fieldname,prefix,'')#">	<!--- triggers the library to update --->
-				<cftry>
-				#getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stFile.stObject,false)# 
-				<cfcatch><cfdump var="#cfcatch.message#"></cfcatch> 
+				<cftry>				
+					#getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stFile.stObject,false)# 					
+					<cfcatch>
+						<a class="error" title="#cfcatch.message#">Error has occured</a>					
+						<!---<cfdump var="#cfcatch#">						
+						<cfdump var="#arguments.stObject#">
+						<cfdump var="#arguments#">
+						--->
+					</cfcatch> 
 				</cftry>     
            <cfelse>
            		<cfset statuscode="200" >
@@ -394,12 +412,12 @@
 		<cfset arguments.stMetadata.ftShowMetadata = 0>
 		<cfset arguments.stMetadata.FTALLOWEDEXTENSIONS = 'jpg,jpeg,png,gif'>
 		<cfset arguments.stMetadata.ftInlineDependants = ''>
-		<cfif arguments.stMetadata.type eq 'string'>
+		<cfif arguments.stMetadata.type eq 'string' OR arguments.stMetadata.type eq 'uuid'>
 			<CFSET arguments.stMetadata.ftLimit = 1>
 		</cfif>
 
 		<!--- set the session to track the changes before save --->
-		<cfset "session.arrayImage['#arguments.stObject.objectid#']['#replace(arguments.fieldname,prefix,'')#']['#listFirst(stMetadata.ftJoin)#']"="#isArray(arguments.stobject[replace(arguments.fieldname,prefix,'')])?arrayToList(arguments.stobject[replace(arguments.fieldname,prefix,'')]):arguments.stobject[replace(arguments.fieldname,prefix,'')]#" >
+		<cfset session.arrayImage['#arguments.stObject.objectid#']['#replace(arguments.fieldname,prefix,'')#']['#listFirst(stMetadata.ftJoin)#']="#isArray(arguments.stobject[replace(arguments.fieldname,prefix,'')])?arrayToList(arguments.stobject[replace(arguments.fieldname,prefix,'')]):arguments.stobject[replace(arguments.fieldname,prefix,'')]#" >
 
 		
  		<skin:loadJS id="fc-jquery" />
@@ -447,16 +465,18 @@
 
 <!--- Drag to here HTML --->
 		<cfsavecontent variable="htmlDrag"><cfoutput>
-
-			<div id="#arguments.fieldname#Dropzone" class="dropzone"><div class="info" style="text-align:center;margin:auto;"><i class="fa fa-upload fa-2x" aria-hidden="true" style="
-    opacity: .5;
-"></i><br>drag to here<br>or click to browse</div>
-<!---<button id="#arguments.fieldname#Browse" class="btn btn-primary" style="position:absolute;bottom:5px;left:5px;">or Browse</button>--->
-<div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:2px;right:2px;display:none;"><i class="fa fa-times"></i></div>
-<div style="position:absolute;bottom:5px;right:5px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
-
+			<div style="position:relative;max-width: 525px;">
+				<div id="#arguments.fieldname#Dropzone" class="dropzone">
+					<div class="info" style="text-align:center;margin:auto;">
+						<i class="fa fa-upload fa-2x" aria-hidden="true" style="opacity: .5;"></i>
+						<br>drag to here<br>or click to browse
+					</div>
+					<div style="position:absolute;bottom:5px;right:5px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
+				</div>
+				<div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:10px;right:10px;display:none;z-index:10">
+					<i class="fa fa-times"></i> stop
+				</div>
 			</div>
-
 		</cfoutput></cfsavecontent>
 
 <!--- This IS the source field --->
@@ -471,18 +491,37 @@
 				.image-list {margin-bottom:1rem;display:flex;max-width: 600px;flex-wrap: wrap;}
 
 				.image-thumb {display:flex;width:80px;height:80px;margin-right:10px;background:rgb(196 241 255);border-radius:10px;position:relative;margin-bottom: 20px;}
-				.image-thumb:not(:has(a)) {border:1px solid rgb(98 218 255)}
+				.image-thumb:not(:has(a)) {border:1px solid rgb(98 218 255);overflow:hidden;}
 				.image-thumb:not(:has(a))::before {
-				content: '\f021';
-				font-family: FontAwesome;
-				margin: auto;
-				font-size: 2rem;
-				animation: fa-spin 2s infinite linear;
-				color: rgb(44 196 251); 
-				display: inline-block;
-				text-align: center;
-				width: 1.28571429em;
-				transform-origin: 50% calc(50% - 0.5px);
+					content: '';		
+					margin: auto -10px auto 50%;
+					font-size: 2rem;
+					animation: fa-spin 2s infinite linear;
+					background-color: rgb(44 196 251); 
+					background: linear-gradient(87deg, rgba(44,196,251,0) 0%, rgba(44,196,251,1) 100%);
+					display: inline-block;
+					text-align: center;
+					width: 200px;
+					height:2px;
+					transform-origin: center left;
+					}
+				.image-thumb:not(:has(a))::after {
+					content: 'standby processing image ';
+					position:absolute;
+					left:0; right:0;
+					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+					font-size:12px;
+					line-height:1em;
+					bottom:calc(50% - 1.5em);
+					animation: fadeInOut 4s infinite linear;
+					color: rgb(44 196 251); 
+					display: block;
+					text-align: center;	
+					}
+				@keyframes fadeInOut {
+					0% { opacity: 0; }
+					50% { opacity: 1; }
+					100% { opacity: 0; }
 				}
 				.image-thumb .fa {font-size:1.5rem;position:relative;height:.85em;width:auto;
 				color:hsl(0deg 100% 35%);margin:auto;margin-bottom:-.4em;border:0px solid white;border-radius:50%; isolation: isolate;cursor: pointer;transition: all 200ms}
@@ -497,7 +536,7 @@
 				border-radius: 50%;
 				z-index: -1;}
 				.image-thumb .fa.rotate-image::after,.image-thumb .fa.edit-image::after {inset:0;background:hsl(205deg 87% 45%)}
-				.image-thumb .fa:hover {transform: scale(1.2);}
+				.image-thumb .fa:hover {transform: scale(1.6);}
 				.image-thumb a img {position: absolute;
 				object-fit: contain;
 				width: 100%;
@@ -547,7 +586,7 @@
 		    <cfsavecontent variable="html"><cfoutput>
 				
 				
-				<div class="arrayImageMain" hx-headers='{"t": "#csrfToken#"}'>
+				<div class="arrayImageMain" style="#arguments.stMetadata.ftLibaryPosition EQ 'below'?'flex-direction: column;':''#" hx-headers='{"t": "#csrfToken#"}'>
 				<div class="multiField" style="width:550px;">
 				
 				
@@ -558,8 +597,9 @@
 						<div id="#arguments.fieldname#_upload" class="upload-view s3upload">
 							<cfif arguments.stMetadata.ftAllowCreate>
 							#htmlDrag#
+							
 							<cfelseif arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20 GT 1>
-								<p class="small">Max of #arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20# Images</p>
+								<p class="small">Select a Max of #arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20# Images</p>
 							</cfif>
 
 							<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
@@ -578,11 +618,11 @@
 						hx-swap="transition:true"
 						<cfif arguments.stMetadata.ftLimit EQ 1 AND arguments.stMetadata.ftAllowCreate>
 						style="width: 90px;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 10;
-    margin: 0;"
+							position: absolute;
+							top: 10px;
+							left: 10px;
+							z-index: 10;
+							margin: 0;"
 						</cfif>
 						>
 						
@@ -785,7 +825,7 @@
 		ie. dataid1:seq1,dataid2:seq2...
 		 --->
 		
-		<cfif arguments.stMetaData.type EQ 'string'>
+		<cfif arguments.stMetaData.type EQ 'string' OR arguments.stMetaData.type EQ 'uuid'>
 			<cfset arguments.stFieldPost.value = listFirst(arrayToList(listToArray(arguments.stFieldPost.value, ","), ",")) />	
 			<cfset stResult.value = arguments.stFieldPost.value />	
 			<cfif structKeyExists(arguments.stMetadata, "ftValidation") AND listFindNoCase(arguments.stMetadata.ftValidation, "required") AND NOT len(arguments.stFieldPost.value)>

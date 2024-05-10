@@ -63,7 +63,7 @@
 	<!--- setup a session for the serach so you can add/remove from the lirary without it reverting back to the unsearched results --->
 	<cfparam name="session.arrayImage['#stobj.objectid#']['#url.property#']['searchTypename']" default="" />
 	<cfparam name="form.searchTypename" default="#session.arrayImage[stobj.objectid][url.property]['searchTypename']#" />
-	<cfset "session.arrayImage['#stobj.objectid#']['#url.property#']['searchTypename']" = form.searchTypename/>
+	<cfset session.arrayImage['#stobj.objectid#']['#url.property#']['searchTypename'] = form.searchTypename/>
 	<cfset local.searchTypename = session.arrayImage[#stobj.objectid#][#url.property#]['searchTypename']>
 
 	<cfif not structkeyexists(stMetadata,"ftLibraryDataTypename") or not len(stMetadata.ftLibraryDataTypename)>
@@ -141,7 +141,7 @@
 			</cfif>
 		</cfoutput>
 	
-		<cfset var theURL = application.formtools.field.oFactory.getAjaxURL(
+		<cfset theURL = application.formtools.field.oFactory.getAjaxURL(
 		typename=stobj.typename,
 		stObject=stobj,
 		stMetadata=stMetadata,

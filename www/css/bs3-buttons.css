@@ -446,6 +446,7 @@ input[type="reset"].btn-block,
 input[type="button"].btn-block {
   width: 100%;
 }
+/*
 .clearfix:before,
 .clearfix:after {
   display: table;
@@ -487,3 +488,4 @@ input[type="button"].btn-block {
 .affix {
   position: fixed;
 }
+*/

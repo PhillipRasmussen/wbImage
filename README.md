@@ -69,6 +69,7 @@ https://github.com/PhillipRasmussen/wbImage/assets/7389789/8563411e-4925-433e-b1
    ftAllowSelect="true" 
    ftAllowEdit="true" 
    ftAllowRotate="true"
+   ftLibaryPosition="side/below"
    />
 ```
 ![image](https://github.com/PhillipRasmussen/wbImage/assets/7389789/06bf7f70-978e-48ab-8ba0-7691914062a5)
