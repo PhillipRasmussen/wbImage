@@ -18,9 +18,11 @@
 		hint='Can the Image be rotated.'>
 	<cfproperty name="ftAutoLabelField" required="false" default="" 
 		type="string"
-		hint='The Field to Auto Name the image from.'>
+		hint='The Field to Auto Name the image from. can be a comma delimited list.'>
 	<cfproperty name="ftLibaryPosition" required="false" default="side" type="string"
 		hint="Where the libary appears either side or below">
+	<cfproperty name="ftEditFields" required="false" default="title" type="string"
+		hint="A comma delimited list of filed to include in the edit action."> 
 
 	
 	
@@ -48,10 +50,13 @@
 		<cfset var sourceField = "" />
 		<cfset var html = "" />
 		<cfset var json = "" />
+		<cfset var result = "" />
+		<cfset var i = "" />
+		
 		
 		<cfset var stJSON = structnew() />
 	    <cfset var prefix = left(arguments.fieldname,len(arguments.fieldname)-len(arguments.stMetadata.name)) />
-		<cfset var aImages = session.arrayImage[arguments.stObject.objectid][replace(arguments.fieldname,prefix,'')][listFirst(stMetadata.ftJoin)]>
+		<cfset var lImages = session.arrayImage[arguments.stObject.objectid][replace(arguments.fieldname,prefix,'')][listFirst(stMetadata.ftJoin)]>
 		<cfset var oData = {} />
 
 		<cfif arguments.stMetadata.type eq "string" OR arguments.stMetadata.type eq "uuid">
@@ -89,6 +94,11 @@
 				<cfset filename = application.fc.lib.cdn.ioUploadFile(location="temp",destination="",field="file",nameconflict="makeunique",acceptextensions=allowedExtensions,sizeLimit=sizeLimit) />
 				
 				<cfset stDefaults = {} />
+				<!--- this could be used to rename the content title eg --->
+				<cfif structKeyExists(form,'ftAutoLabelField') AND form.ftAutoLabelField NEQ ''>
+					<cfset stDefaults.title = form.ftAutoLabelField>
+				</cfif>
+				
 				
 				
 				<cfset stTask = {
@@ -173,7 +183,7 @@
 <!--- Remove library limage --->
 <cfif structkeyexists(url,"action") and url.action eq "removeLibraryImage">	
 		
-	<cfset lImages = session.arrayImage[arguments.stObject.objectid][replace(arguments.fieldname,prefix,'')][listFirst(stMetadata.ftJoin)]>
+	
 	<cfset lImages = listDeleteAt(lImages,listFind(lImages,url.imageid))>
 	<cfset session.arrayImage[arguments.stObject.objectid][replace(arguments.fieldname,prefix,'')][listFirst(stMetadata.ftJoin)] = lImages>
 	
@@ -186,11 +196,10 @@
 
 
 <!--- Handle status check request --->
-<cfif structkeyexists(url,"action") and url.action eq "delete">
-	<cfset lImages = session.arrayImage[arguments.stObject.objectid][replace(arguments.fieldname,prefix,'')][listFirst(stMetadata.ftJoin)]>
+<cfif structkeyexists(url,"action") and url.action eq "delete">	
+	<cflog file="arryImage" text="DELETE #url.imageid# FROM #lImages#">
 	<cfset lImages = listDeleteAt(lImages,listFind(lImages,url.imageid))>
 	<cfset session.arrayImage[arguments.stObject.objectid][replace(arguments.fieldname,prefix,'')][listFirst(stMetadata.ftJoin)] = lImages>
-	<cfset result = ''>
 	<cfif arguments.stMetadata.ftRemoveType EQ 'delete'>
 		<cfset stImage = application.fapi.getContentObject(url.imageid) />
 		<cfset oData = createObject("component", application.stcoapi[stImage.typename].packagepath) />	
@@ -201,7 +210,9 @@
 		<cfset sResult = serializeJSON(oData.delete(stImage.objectid)) />
 		<cfset result = ''>
 	</cfif>
-	
+	<cfif lImages EQ ''>
+		<cfset result = '<input type="hidden" name="#arguments.fieldname#"  value="" />'>
+	</cfif>
 	<cfheader name="HX-Trigger" value="updateLibrary#replace(arguments.fieldname,prefix,'')#">
 	<cfset application.fapi.stream(content='#result#',type="html",status="200") />
 </cfif>
@@ -212,7 +223,16 @@
 	<cfsavecontent variable="theHTML">
 	<cfoutput>
 		<div class="image-edit-box">
-			<input name="imagetitle" value="#stImage.title#">
+			<!--- look for fields of string --->
+			<!---
+			<cfdump var="#stImage#">
+			<cfdump var="#arguments.stMETADATA#">
+			<cfdump var="#application.stcoapi[stImage.typename].stProps#">
+			--->
+			<!--- todo : use stprops to better render the form --->
+			<cfloop list="#arguments.stMETADATA.ftEditFields#" index="i">
+				<label>#i# <input name="edit-#i#" value="#stImage[i]#"></label>
+			</cfloop>
 			<button
 			class="btn btn-primary"
 			hx-post="#theURL#/action/edit-save/imageid/#url.imageid#"
@@ -242,13 +262,25 @@
 <cfif structkeyexists(url,"action") and url.action eq "edit-save">
 	<cfset stImage = application.fapi.getContentObject(url.imageid) />
 	<cfset oData = createObject("component", application.stcoapi[stImage.typename].packagepath) />
-	<cfset stImage['title'] = application.fc.lib.esapi.encodeForHTML(form.imagetitle)>
+	<cfloop list="#arguments.stMETADATA.ftEditFields#" index="i">
+		<cfif structKeyExists(form,'edit-'&i)>
+			<cfset stImage[i] = application.fc.lib.esapi.encodeForHTML(form['edit-'&i])>
+		</cfif>				
+	</cfloop>
+	
 	<cfset stImage['label'] = stImage['title']>
-	<!---<cfset application.fapi.setData(typename=arguments.typename,objectid=url.imageid,stproperties=stImage) />
+	<!--- removed this in favour of query for speed
+	<cfset application.fapi.setData(typename=arguments.typename,objectid=url.imageid,stproperties=stImage) />
 	--->
 	<cfquery datasource="#application.dsn#">
 		update #stImage.typename#
-		SET title = <cfqueryparam cfsqltype="varchar" value="#form.imagetitle#">, label = <cfqueryparam cfsqltype="varchar" value="#form.imagetitle#">,
+		SET 
+		<cfloop list="#arguments.stMETADATA.ftEditFields#" index="i">
+			<cfif structKeyExists(form,'edit-'&i)>				
+				#i# = <cfqueryparam cfsqltype="varchar" value="#stImage[i]#">, 
+			</cfif>				
+		</cfloop>
+		label = <cfqueryparam cfsqltype="varchar" value="#stImage['title']#">,
 		DATETIMELASTUPDATED = now(),LASTUPDATEDBY = '#application.security.getCurrentUserID()#'	
 		WHERE objectid = '#stImage.objectid#'	
 	</cfquery>
@@ -402,6 +434,7 @@
 
         <cfset var joinItems = "" />
 		<cfset var error = "" />
+		<cfset var i = "" />
 		<cfset var bFileExists = 0 />
 		<cfset var imageMaxWidth = 400 />
 		<cfset var cancelUploadButton = '<a href="##back" class="select-view btn btn-warning" style="margin-top:3px"><i class="fa fa-times-circle-o fa-fw mt-2" ></i> Cancel - I don''t want to upload an image</a>'>
@@ -426,8 +459,10 @@
 	    <skin:loadJS id="jquery-tooltip-auto" />
 	    <skin:loadCSS id="jquery-tooltip" />
 		
-	    
-
+	    <!---
+		<cfdump var="#arguments.stMetaData#">
+		<cfdump var="#application.stcoapi[arguments.typename].stProps['title'].METADATA.type#">
+		--->
 
 		<cfif arguments.stMetadata.ftAllowCreate>
 			<skin:loadJS id="plupload" />
@@ -435,7 +470,7 @@
 	   
 	    <skin:loadCSS id="fc-fontawesome" />
 
-	    <skin:loadCSS id="image-formtool" />
+	    
 		<skin:loadJS id="arrayimage-formtool" />
 		<skin:loadJS id="htmx" />
 		<skin:loadCSS id="bs3-buttons" />
@@ -444,7 +479,7 @@
 
 <!---<cfdump var="#arguments.stMetadata#">--->
 		
-	<cfset stImageProps = application.stcoapi[arguments.stMetadata.ftjoin].stProps />
+	
 <!---<cfdump var="#stImageProps#" expand="no">
 		<cfreturn ''>--->
 <cfsavecontent variable="metadatainfo">
@@ -456,22 +491,39 @@
 			<cfoutput>Image must be of type #arguments.stMetadata.ftAllowedExtensions#<br>Max File Size: <cfif arguments.stMetadata.ftSizeLimit>#arguments.stMetadata.ftSizeLimit/1e+6#Mb<cfelse>Any</cfif></cfoutput>
 			--->
 			<cfoutput>
-			Max of #arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20# Images<br>
-			Size Limit: #(stImageProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit?numberFormat(stImageProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit/1e+6,'___.9')&'Mb':'none')#<br>
-			#structKeyExists(stImageProps,arguments.stMetadata.ftSourceImage)?stImageProps[arguments.stMetadata.ftSourceImage].metadata.ftAllowedExtensions:stMetadata.ftAllowedExtensions#
+				Max of #arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20# Images<br>
+				<cfloop list="#arguments.stMetadata.ftjoin#" index="i">
+					<cfif findnocase('image',i)>
+						<cfset stProps = application.stcoapi[i].stProps />
+						
+					Size Limit: #(stProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit?numberFormat(stProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit/1e+6,'___.9')&'Mb':'none')#<br>
+					#structKeyExists(stProps,arguments.stMetadata.ftSourceImage)?stProps[arguments.stMetadata.ftSourceImage].metadata.ftAllowedExtensions:stMetadata.ftAllowedExtensions#
+					</cfif>
+				</cfloop>
+				<cfif arguments.stMetadata.ftAutoLabelField NEQ "">
+				<!--- check they're all strings --->
+					<cfset lAutoFields = "">
+					<cfloop list="#arguments.stMetadata.ftAutoLabelField#" index="i">
+						<cfif application.stcoapi[arguments.typename].stProps[i].METADATA.type EQ "string">
+							<cfset lAutoFields = listAppend(lAutoFields,i)> 
+						</cfif>
+					</cfloop>
+					<br>Images will be auto labelled as per #lAutoFields#
+				</cfif>
+				
 			</cfoutput>
 		</cfsavecontent>
 
 
 <!--- Drag to here HTML --->
 		<cfsavecontent variable="htmlDrag"><cfoutput>
-			<div style="position:relative;max-width: 525px;">
+			<div style="position:relative;max-width: 100%;">
 				<div id="#arguments.fieldname#Dropzone" class="dropzone">
-					<div class="info" style="text-align:center;margin:auto;">
+					<div class="info">
 						<i class="fa fa-upload fa-2x" aria-hidden="true" style="opacity: .5;"></i>
 						<br>drag to here<br>or click to browse
 					</div>
-					<div style="position:absolute;bottom:5px;right:5px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;">#metadatainfo#</div>
+					<div class="metadatainfo">#metadatainfo#</div>
 				</div>
 				<div id="#arguments.fieldname#Stop" class="btn btn-primary" style="position:absolute;top:10px;right:10px;display:none;z-index:10">
 					<i class="fa fa-times"></i> stop
@@ -483,16 +535,31 @@
 			<skin:htmlHead id="arrayimage-css">
 			<cfoutput>
 			<style>
-				.arrayImageMain {display:flex;gap:20px;}
-				.dropzone {color:hsl(194 100% 50% / 1);border: 2px dashed rgb(98 218 255);border-radius:10px;height:100px;max-width: 525px;position:relative;display:flex;margin-bottom:1rem}
+				.arrayImageMain {display:flex;column-gap:20px;}
+				.dropzone {color:hsl(194 100% 50% / 1);border: 2px dashed rgb(98 218 255);border-radius:10px;height:100px;max-width: 100%;position:relative;display:flex;margin-bottom:1rem}
 				.dropzone.drag-on {border: 2px solid rgb(98 218 255)}
+				.dropzone .info {text-align:center;margin:auto;}
+				.dropzone .metadatainfo {position:absolute;bottom:5px;right:5px;display:block;font-size: 10px;line-height: 1.2em;color:##aaa;text-align:right;}
 				.libraryDiv:has(input) {border: 2px solid rgb(98 218 255);border-radius:10px;padding:10px;width:490px;}
 
-				.image-list {margin-bottom:1rem;display:flex;max-width: 600px;flex-wrap: wrap;}
-
-				.image-thumb {display:flex;width:80px;height:80px;margin-right:10px;background:rgb(196 241 255);border-radius:10px;position:relative;margin-bottom: 20px;}
-				.image-thumb:not(:has(a)) {border:1px solid rgb(98 218 255);overflow:hidden;}
-				.image-thumb:not(:has(a))::before {
+				.image-list {margin-bottom:1rem;display:flex;max-width: 100%;flex-wrap: wrap;column-gap:10px;row-gap:15px;
+					
+					}
+				.image-list.image-list-single {width: 90px;
+							position: absolute;
+							top: 10px;
+							left: 10px;
+							z-index: 10;
+							margin: 0;}
+				.image-list:has(.image-thumb):not(.image-list-single) {border: 1px solid rgb(98 218 255);
+					padding: 8px 8px 15px 8px;
+					border-radius: 10px;}
+				.image-preview {cursor: pointer;}
+				dialog {border-color: white!important;outline-color:white;} 
+				img.image-preview-dialog {border-radius:20px;}
+				.image-thumb {display:flex;width:80px;height:80px;background:rgb(196 241 255);border-radius:10px;position:relative;}
+				.image-thumb:not(:has(.image-preview)) {border:1px solid rgb(98 218 255);overflow:hidden;}
+				.image-thumb:not(:has(.image-preview))::before {
 					content: '';		
 					margin: auto -10px auto 50%;
 					font-size: 2rem;
@@ -505,7 +572,7 @@
 					height:2px;
 					transform-origin: center left;
 					}
-				.image-thumb:not(:has(a))::after {
+				.image-thumb:not(:has(.image-preview))::after {
 					content: 'standby processing image ';
 					position:absolute;
 					left:0; right:0;
@@ -537,12 +604,12 @@
 				z-index: -1;}
 				.image-thumb .fa.rotate-image::after,.image-thumb .fa.edit-image::after {inset:0;background:hsl(205deg 87% 45%)}
 				.image-thumb .fa:hover {transform: scale(1.6);}
-				.image-thumb a img {position: absolute;
+				.image-thumb .image-preview img {position: absolute;
 				object-fit: contain;
 				width: 100%;
 				height: 100%;
 				border-radius: 10px;transition: all 200ms}
-				.image-thumb a img:hover {transform: scale(1.2);}
+				.image-thumb .image-preview img:hover {transform: scale(1.2);}
 
 				.image-edit-box {position: absolute;
 					background: white;
@@ -580,6 +647,8 @@
 	pointer-events: none;;
 }
 				</style>
+			
+
 			</cfoutput>			
 			</skin:htmlHead>
 
@@ -594,35 +663,31 @@
 			    
 					<!---<input type="hidden" name="#arguments.fieldname#" id="#arguments.fieldname#" value="" />--->
 					<div id="#arguments.fieldname#-multiview" style="position:relative;">
-						<div id="#arguments.fieldname#_upload" class="upload-view s3upload">
+						<div id="#arguments.fieldname#_upload" class="upload-view">
 							<cfif arguments.stMetadata.ftAllowCreate>
-							#htmlDrag#
-							
+								#htmlDrag#							
 							<cfelseif arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20 GT 1>
 								<p class="small">Select a Max of #arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20# Images</p>
 							</cfif>
-
-							<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">#error#</div>
-							
-
-
-							
+							<div id="#arguments.fieldname#_uploaderror" class="alert alert-error" style="margin-top:0.7em;margin-bottom:0.7em;<cfif not len(error)>display:none;</cfif>">
+								#error#
+							</div>
 						</div>
+						
 						
 						
 						<cfset local.urlImageList = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=imageList'>
 						
-						<div class="image-list"
+						<div class="image-list
+							<cfif arguments.stMetadata.ftLimit EQ 1 AND arguments.stMetadata.ftAllowCreate>
+								image-list-single
+							</cfif>
+							"
 						hx-post="#local.urlImageList#"
 						hx-trigger="load,libraryUpdated#replace(arguments.fieldname,prefix,'')# from:body"
 						hx-swap="transition:true"
 						<cfif arguments.stMetadata.ftLimit EQ 1 AND arguments.stMetadata.ftAllowCreate>
-						style="width: 90px;
-							position: absolute;
-							top: 10px;
-							left: 10px;
-							z-index: 10;
-							margin: 0;"
+						style=""
 						</cfif>
 						>
 						
@@ -665,46 +730,72 @@
 
 
 					<cfset local.url = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=upload'>
-					
+					<dialog id="#arguments.fieldname#-dialogImagePreview">
+						<div id="#arguments.fieldname#-dialogImageContent">
+						</div>
+						<div class="btn-close btn btn-primary" style="margin:20px auto">
+							close
+						</div>
+					</dialog>
 
-					<script type="text/javascript">
-					htmx.on("htmx:load", function(evt) { /* fired whenever an htmx call is loaded */
-						//console.log('added');
-						$j('.tooltip,.ui-tooltip').remove();
-						$j('.delete-image,.rotate-image,.library-image,.image-preview,.edit-image').tooltip();
-					});
-					htmx.on("click", function(evt) { /* fired whenever an htmx call is loaded */
-						//console.log('added');
-						$j('.tooltip,.ui-tooltip').remove();
+					<script type="text/javascript">						
+						const #arguments.fieldname#dialogElem = document.getElementById("#arguments.fieldname#-dialogImagePreview");
+						const #arguments.fieldname#closeBtn = #arguments.fieldname#dialogElem.querySelector(".btn-close");
+						const #arguments.fieldname#dialogContent = document.getElementById("#arguments.fieldname#-dialogImageContent");						
 						
-					});
-					htmx.on("htmx:beforeCleanupElement", function(evt) {
-						//console.log('swapp');
-						//$j('###arguments.fieldname#-multiview .alert-error').hide();
-						
-					});
-					
-					$j('###arguments.fieldname#-multiview .image-list').sortable(
-						{
-  							stop: function( event, ui ) {
-								//console.log('sort stopped');
-								htmx.trigger("###arguments.fieldname#_imageSort", "sortStopped")
+						#arguments.fieldname#closeBtn.addEventListener("click", () => {
+							#arguments.fieldname#dialogElem.close();
+							#arguments.fieldname#dialogContent.innerHTML = '';
+							return false;
+						});
+						#arguments.fieldname#dialogElem.addEventListener('click', () => #arguments.fieldname#dialogElem.close());
+
+						htmx.on("htmx:load", function(evt) { /* fired whenever an htmx call is loaded */
+							//console.log('added');
+							$j('.tooltip,.ui-tooltip').remove();
+							$j('.delete-image,.rotate-image,.library-image,.image-preview,.edit-image').tooltip();
+							
+						});
+						htmx.on("click", function(evt) { /* fired whenever an htmx call is loaded */
+							//console.log('added');
+							$j('.tooltip,.ui-tooltip').remove();
+							
+						});
+						htmx.on("htmx:beforeCleanupElement", function(evt) {
+							//console.log('swapp');
+							//$j('###arguments.fieldname#-multiview .alert-error').hide();
+							
+						});
+						$j(document).on('click','###arguments.fieldname#-multiview .image-preview',function(){						
+							//console.log('click');
+							#arguments.fieldname#dialogElem.showModal();
+							#arguments.fieldname#dialogContent.innerHTML = '<img src="'+$j(this).data('image')+'" class="image-preview-dialog"/>';
+
+						});
+						$j('###arguments.fieldname#-multiview .image-list').sortable(
+							{
+								stop: function( event, ui ) {
+									//console.log('sort stopped');
+									htmx.trigger("###arguments.fieldname#_imageSort", "sortStopped")
+								}
 							}
-						}
-					);
-					$j('.delete-image,.rotate-image,.edit-image').tooltip();
-					<cfif arguments.stMetadata.ftAllowCreate>
-					$fc.imageformtool('#prefix#','#arguments.stMetadata.name#')
-					.init(
-					'#local.url#'
-					,'#structKeyExists(stImageProps,arguments.stMetadata.ftSourceImage)?stImageProps[arguments.stMetadata.ftSourceImage].metadata.ftAllowedExtensions:stMetadata.ftAllowedExtensions#'
-					,'<!---#arguments.stMetadata.ftSourceField#--->'
-					,0<!---#arguments.stMetadata.ftImageWidth#--->
-					,0<!---#arguments.stMetadata.ftImageHeight#--->
-					,false
-					,#structKeyExists(stImageProps,arguments.stMetadata.ftSourceImage)?stImageProps[arguments.stMetadata.ftSourceImage].metadata.ftSizeLimit:stMetadata.ftSizeLimit# /* size limit */
-					,'<!---#arguments.stMetadata.ftAutoGenerateType#--->','file',#arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20#,'#csrfToken#');
-					</cfif>
+						);
+						$j('.delete-image,.rotate-image,.edit-image').tooltip();
+						<cfif arguments.stMetadata.ftAllowCreate>
+							// initiate plupload
+							$fc.arrayimageFormtool('#prefix#','#arguments.stMetadata.name#')
+							.init(
+							'#local.url#'
+							,'#structKeyExists(stProps,arguments.stMetadata.ftSourceImage)?stProps[arguments.stMetadata.ftSourceImage].metadata.ftAllowedExtensions:stMetadata.ftAllowedExtensions#'
+							,'<!---#arguments.stMetadata.ftSourceField#--->'
+							,0<!---#arguments.stMetadata.ftImageWidth#--->
+							,0<!---#arguments.stMetadata.ftImageHeight#--->
+							,false
+							,#structKeyExists(stProps,arguments.stMetadata.ftSourceImage)?stProps[arguments.stMetadata.ftSourceImage].metadata.ftSizeLimit:stMetadata.ftSizeLimit# /* size limit */
+							,'<!---#arguments.stMetadata.ftAutoGenerateType#--->','file',#arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20#,
+							'#csrfToken#',
+							'#arguments.stMetadata.ftAutoLabelField NEQ '' AND lAutoFields NEQ ""?lAutoFields:''#');
+						</cfif>
 					</script>
 					
 					
@@ -727,7 +818,7 @@
 		<cfargument name="stObject" required="true" type="struct" hint="The object of the record that this field is part of.">
 		<cfargument name="stMetadata" required="true" type="struct" hint="This is the metadata that is either setup as part of the type.cfc or overridden when calling ft:object by using the stMetadata argument.">
 		<cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
-		<cfset var HTML = '<input type="hidden" name="#arguments.fieldname#"  value="" />'>
+		<cfset var HTML = ''>
 		<cfset var prefix = left(arguments.fieldname,len(arguments.fieldname)-len(arguments.stMetadata.name)) />
 		<cfset var stImage = {}>
 
@@ -738,6 +829,9 @@
 			<cfset stImage = application.fapi.getcontentobject(typename="#arguments.stMetadata.ftJoin#",objectid="#aObjects[i]#")>
 			<cfset HTML &= getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stImage)>
 		</cfloop> 
+		<cfif HTML EQ "">
+			<cfset HTML = '<input type="hidden" name="#arguments.fieldname#"  value="" />'>
+		</cfif>
 		
 
 		<cfreturn HTML>
@@ -757,10 +851,10 @@
 							<cftry>															
 							<cfoutput>
 							<cfif arguments.bIncludeOuter><div id="thumb-#arguments.stImage.objectid#" class="image-thumb"></cfif>
-						 	<a class="image-preview" href="#application.fapi.getImageWebRoot()##arguments.stImage.standardimage#?#cacheBuster#" target="_blank" title="#arguments.stImage.title#">
-							<img rel="#arguments.stImage.objectid#" src="#application.fapi.getImageWebRoot()##arguments.stImage.thumbnailimage#?#cacheBuster#"  class="previewWindow">
-							<input type="hidden" name="#arguments.fieldname#"  value="#stImage.objectid#" />
-							</a>
+						 	<div class="image-preview" data-image="#application.fapi.getImageWebRoot()##arguments.stImage.standardimage#?#cacheBuster#" title="#arguments.stImage.title#">
+								<img rel="#arguments.stImage.objectid#" src="#application.fapi.getImageWebRoot()##arguments.stImage.thumbnailimage#?#cacheBuster#"  class="previewWindow">
+								<input type="hidden" name="#arguments.fieldname#"  value="#stImage.objectid#" />
+							</div>
 							<cfif arguments.stMetadata.ftRemoveType EQ 'delete'>
 								<i class="fa fa-minus-circle delete-image" aria-hidden="true" title="Delete" 
 								hx-get="#theURL#/action/delete/imageid/#arguments.stImage.objectid#" 
@@ -790,7 +884,7 @@
 							</cfif>
 							<cfif arguments.bIncludeOuter></div></cfif>
 							</cfoutput>
-							<cfcatch><cfdump var="#cfcatch.message#"></cfcatch>
+							<cfcatch><cfdump var="#cfcatch#" format="text"></cfcatch>
 							</cftry>
 							</cfsavecontent>
 	

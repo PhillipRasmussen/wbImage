@@ -310,7 +310,7 @@ Select Exactly How To Crop Your Image
 					<input type="hidden" name="#arguments.fieldname#" id="#arguments.fieldname#" value="#arguments.stMetadata.value#" />
 					<input type="hidden" name="#arguments.fieldname#DELETE" id="#arguments.fieldname#DELETE" value="false" />
 					<div id="#arguments.fieldname#-multiview">
-						<div id="#arguments.fieldname#_upload" class="upload-view s3upload"<cfif len(arguments.stMetadata.value)> style="display:none;"</cfif>>
+						<div id="#arguments.fieldname#_upload" class="upload-view"<cfif len(arguments.stMetadata.value)> style="display:none;"</cfif>>
 							<!---<a href="##traditional" class="fc-btn select-view" style="float:left" title="Switch between traditional upload and inline upload"><i class="fa fa-random fa-fw">&nbsp;</i></a>
 							<input type="file" name="#arguments.fieldname#NEW" id="#arguments.fieldname#NEW" />--->
 							#htmlDrag#
@@ -1058,7 +1058,7 @@ Select Exactly How To Crop Your Image
 
 		<!--- Apply Image Effects --->
 		<cfif len(arguments.customEffectsObjName) and len(arguments.lCustomEffects)>
-			<cfset oImageEffects = createObject("component", "#evaluate("application.formtools.#customEffectsObjName#.packagePath")#") />
+			<cfset oImageEffects = createObject("component", application.formtools[customEffectsObjName].packagePath) />
 
 			<!--- Covert the list to an array --->
 			<cfset aMethods = listToArray(trim(arguments.lCustomEffects), ";") />
@@ -1344,6 +1344,135 @@ Select Exactly How To Crop Your Image
 	</cffunction>
 
 
+
+<cffunction name="handleFilePost" access="public" output="false" returntype="struct" hint="Handles image post and returns standard formtool result struct">
+		<cfargument name="objectid" type="uuid" required="true" hint="The objectid of the edited object" />
+		<cfargument name="existingfile" type="string" required="true" hint="Current value of property" />
+		<cfargument name="uploadfield" type="string" required="true" hint="Traditional form saves will use <PREFIX><PROPERTY>NEW, ajax posts will use <PROPERTY>NEW ... so the caller needs to say which it is" />
+		<cfargument name="destination" type="string" required="true" hint="Destination of file" />
+		<cfargument name="allowedExtensions" type="string" required="true" hint="The acceptable extensions" />
+		<cfargument name="sizeLimit" type="numeric" required="false" default="0" hint="Maximum size of file in bytes" />
+		<cfargument name="bArchive" type="boolean" required="true" hint="True to archive old files" />
+		<cfargument name="stFieldPost" type="struct" required="false" default="#structnew()#" hint="The supplementary data" />
+		
+		<cfset var uploadFileName = "" />
+		<cfset var archivedFile = "" />
+		<cfset var stResult = passed(arguments.existingfile) />
+		<cfset var stFile = structnew() />
+		
+		<cfparam name="stFieldPost.NEW" default="" />
+		<cfparam name="stFieldPost.DELETE" default="false" /><!--- Boolean --->
+		<cflog file="imagefromtool" text ="handlefile post fired bArchive:#arguments.bArchive#">
+		<cfset stResult.bChanged = false />
+		
+		<!--- If developer has entered an ftDestination, make sure it starts with a slash --->
+		<cfif len(arguments.destination) AND left(arguments.destination,1) NEQ "/">
+			<cfset arguments.destination = "/#arguments.destination#" />
+		</cfif>
+		<cflog file="imagefromtool" text ="check existing :upload:#structkeyexists(form,arguments.uploadfield)# existing len#len(arguments.existingfile)# existing file exits:#application.fc.lib.cdn.ioFileExists(location="images",file=arguments.existingfile)# bArchive:#arguments.bArchive#
+		">
+			
+		<cfif (
+				(
+					structkeyexists(form,arguments.uploadfield) 
+					AND len(form[arguments.uploadfield])
+				) 
+				OR (
+					isBoolean(stFieldPost.DELETE) 
+					AND stFieldPost.DELETE
+				)
+				
+			) 
+			AND len(arguments.existingfile) 
+			AND application.fc.lib.cdn.ioFileExists(location="images",file=arguments.existingfile)>
+			
+			<cfif arguments.bArchive>
+				<cfset archivedFile = application.fc.lib.cdn.ioMoveFile(
+					source_location="images",
+					source_file=arguments.existingfile,
+					dest_location="archive",
+					dest_file="#arguments.destination#/#arguments.objectid#-#round(getTickCount()/1000)#-#listLast(arguments.existingfile, '/')#"
+				) />
+				<cflog file="imagefromtool" text ="ioMoveFile :#arguments.destination#/#arguments.objectid#-#round(getTickCount()/1000)#-#listLast(arguments.existingfile, '/')#">
+			<cfelse>
+				<cfset archivedFile = application.fc.lib.cdn.ioCopyFile(
+					source_location="images",
+					source_file=arguments.existingfile,
+					dest_localpath=getTempDirectory() & "#arguments.objectid#-#round(getTickCount()/1000)#-#listLast(arguments.existingfile, '/')#"
+				) />
+			</cfif>
+			
+		    <cfset stResult = passed("") />
+		    <cfset stResult.bChanged = true />
+		    
+		</cfif>
+		
+	  	<cfif structkeyexists(form,arguments.uploadfield) and len(form[arguments.uploadfield])>
+	  	
+	    	<cfif len(arguments.existingfile) and application.fc.lib.cdn.ioFileExists(location="images",file=arguments.existingfile)>
+	    		
+				<!--- This means there is already a file associated with this object. The new file must have the same name. --->
+				<cftry>
+					<cfset uploadFileName = application.fc.lib.cdn.ioUploadFile(
+						location="images",
+						destination=arguments.existingFile,
+						field=arguments.uploadfield,
+						sizeLimit=arguments.sizeLimit
+					) />
+					
+					<cfset stResult = passed(uploadFileName) />
+					<cfset stResult.bChanged = true />
+					
+					<cfif not arguments.bArchive>
+						<cffile action="delete" file="#archivedFile#" />
+					</cfif>
+					
+					<cfcatch type="uploaderror">
+						<cfif arguments.bArchive>
+							<cfset application.fc.lib.cdn.ioMoveFile(
+								source_location="archive",
+								source_file=archivedFile,
+								dest_location="images",
+								dest_file=arguments.existingFile
+							) />
+						<cfelse>
+							<cfset archivedFile = application.fc.lib.cdn.ioMoveFile(
+								source_localpath=archivedFile,
+								dest_location="images",
+								dest_file=arguments.existingFile
+							) />
+						</cfif>
+						
+						<cfset stResult = failed(value=arguments.existingfile,message=cfcatch.message) />
+					</cfcatch>
+				</cftry>
+				
+			<cfelse>
+				
+				<!--- There is no image currently so we simply upload the image and make it unique  --->
+				<cftry>
+					<cfset uploadFileName = application.fc.lib.cdn.ioUploadFile(
+						location="images",
+						destination=arguments.destination,
+						acceptextensions=arguments.allowedExtensions,
+						field=arguments.uploadfield,
+						sizeLimit=arguments.sizeLimit,
+						nameconflict="makeunique") />
+					
+					<cfset stResult = passed(uploadFileName) />
+					<cfset stResult.bChanged = true />
+					
+					<cfcatch type="uploaderror">
+						<cfset stResult = failed(value=arguments.existingfile,message=cfcatch.message) />
+					</cfcatch>
+				</cftry>
+				
+			</cfif>
+			
+		</cfif>
+		
+		<cfreturn stResult />
+	</cffunction>
 
 
 </cfcomponent>

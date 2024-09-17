@@ -49,6 +49,9 @@ The goal for this formtool was:
 * To rely on HTMX where possible
 * Use CSRF tokens for all ajax calls
 
+ftAutoLabelField="title" will create the image title based on this list (eg firstname,lastname)
+ftEditFields="title" the list of fields you can edit with the ftAllowEdit on true. They must be strings only.
+
 To obtain the ftAllowedExtensions and ftSizeLimit it looks for the ftJoin's ftSourceImage.
 
 https://github.com/PhillipRasmussen/wbImage/assets/7389789/8aa1ea0f-36d8-4c8b-9a38-6c8d61ce4762
@@ -70,6 +73,8 @@ https://github.com/PhillipRasmussen/wbImage/assets/7389789/8563411e-4925-433e-b1
    ftAllowEdit="true" 
    ftAllowRotate="true"
    ftLibaryPosition="side/below"
+   ftAutoLabelField="title"
+   ftEditFields="title"
    />
 ```
 ![image](https://github.com/PhillipRasmussen/wbImage/assets/7389789/06bf7f70-978e-48ab-8ba0-7691914062a5)
@@ -89,6 +94,8 @@ When you only want one image selected, eg teaserImage
    ftAllowSelect="true" 
    ftAllowEdit="true" 
    ftAllowRotate="true"
+   ftAutoLabelField="title"
+   ftEditFields="title"
    />
 ```
 ![image](https://github.com/PhillipRasmussen/wbImage/assets/7389789/157e38a9-a527-4063-8c25-0f25bf6058c9)

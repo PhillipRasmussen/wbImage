@@ -99,10 +99,10 @@
 
 
 
-$fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
+$fc.arrayimageFormtool = function arrayimageFormtoolObject(prefix,property,bUUID){
 	
-	function ImageFormtool(prefix,property) {
-		var imageformtool = this;
+	function ArrayImageFormtool(prefix,property) {
+		var arrayimageFormtool = this;
 		this.prefix = prefix;
 		this.property = property;
 		this.multiview = "";
@@ -111,91 +111,93 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 		this.views = {};
 		this.elements = {};
 		
-		this.init = function initImageFormtool(url,filetypes,sourceField,width,height,inline,sizeLimit,autogeneratetype,filedataname,filelimit,token){
+		this.init = function initImageFormtool(url,filetypes,sourceField,width,height,inline,sizeLimit,autogeneratetype,filedataname,filelimit,token,ftAutoLabelField){
 
-			imageformtool.url = url;
-			imageformtool.filetypes = filetypes;
-			imageformtool.sourceField = sourceField;
-			imageformtool.width = width;
-			imageformtool.height = height;
-			imageformtool.autogeneratetype = autogeneratetype;
-			imageformtool.inline = inline || false;
-			imageformtool.sizeLimit = sizeLimit || null;
-			imageformtool.filedataname = filedataname || property+'NEW';
-			imageformtool.fileLimit = Number(filelimit) || 0;
-			imageformtool.token = token;
+			arrayimageFormtool.url = url;
+			arrayimageFormtool.filetypes = filetypes;
+			arrayimageFormtool.sourceField = sourceField;
+			arrayimageFormtool.width = width;
+			arrayimageFormtool.height = height;
+			arrayimageFormtool.autogeneratetype = autogeneratetype;
+			arrayimageFormtool.inline = inline || false;
+			arrayimageFormtool.sizeLimit = sizeLimit || null;
+			arrayimageFormtool.filedataname = filedataname || property+'NEW';
+			arrayimageFormtool.fileLimit = Number(filelimit) || 0;
+			arrayimageFormtool.token = token;
+			arrayimageFormtool.ftAutoLabelField = ftAutoLabelField;
 			
-			imageformtool.inputs.resizemethod  = $j('#'+prefix+property+'RESIZEMETHOD');
-			imageformtool.inputs.quality  = $j('#'+prefix+property+'QUALITY');
-			imageformtool.inputs.deletef = $j('#'+prefix+property+'DELETE');
-			imageformtool.inputs.traditional = $j('#'+prefix+property+'TRADITIONAL');
-			//imageformtool.inputs.newf = $j('#'+prefix+property+'NEW');
-			imageformtool.elements.browse = prefix+property+'Browse';
-			imageformtool.elements.dropzone = prefix+property+'Dropzone';
-			imageformtool.elements.stop= prefix+property+'Stop';
-			imageformtool.inputs.base = $j('#'+prefix+property);
+			arrayimageFormtool.inputs.resizemethod  = $j('#'+prefix+property+'RESIZEMETHOD');
+			arrayimageFormtool.inputs.quality  = $j('#'+prefix+property+'QUALITY');
+			arrayimageFormtool.inputs.deletef = $j('#'+prefix+property+'DELETE');
+			arrayimageFormtool.inputs.traditional = $j('#'+prefix+property+'TRADITIONAL');
+			//arrayimageFormtool.inputs.newf = $j('#'+prefix+property+'NEW');
+			arrayimageFormtool.elements.browse = prefix+property+'Browse';
+			arrayimageFormtool.elements.dropzone = prefix+property+'Dropzone';
+			arrayimageFormtool.elements.stop= prefix+property+'Stop';
+			arrayimageFormtool.inputs.base = $j('#'+prefix+property);
+			
 			
 			var bUUIDSource = false;
 			if (sourceField.indexOf(":")>-1){
 				bUUIDSource = true;
 				sourceField = sourceField.split(":")[0];
-				imageformtool.sourceField = sourceField;
+				arrayimageFormtool.sourceField = sourceField;
 			}
 			
-    		imageformtool.multiview = $j("#"+prefix+property+"-multiview").multiView({ 
+    		arrayimageFormtool.multiview = $j("#"+prefix+property+"-multiview").multiView({ 
 	    			"onOpenTarget" : {
-	    				"upload" : function onImageFormtoolOpenUpload(event){  },
-	    				"complete" : function onImageFormtoolOpenComplete(event){ 
-		    				if (imageformtool.inputs.base.val().length){
+	    				"upload" : function onArrayImageFormtoolOpenUpload(event){  },
+	    				"complete" : function onArrayImageFormtoolOpenComplete(event){ 
+		    				if (arrayimageFormtool.inputs.base.val().length){
 			    				$j(this).find(".image-cancel-upload").show();
 			    				$j(this).find(".image-cancel-replace").show();
 			    				$j(this).find(".alert-error-readimg").remove();
 			    			}
 		    			},
-	    				"autogenerate" : function onImageFormtoolOpenAutogenerate(event){ 
-		    				if (imageformtool.inputs.base.val().length){
-			    				imageformtool.inputs.deletef.val("true");
+	    				"autogenerate" : function onArrayImageFormtoolOpenAutogenerate(event){ 
+		    				if (arrayimageFormtool.inputs.base.val().length){
+			    				arrayimageFormtool.inputs.deletef.val("true");
 								$j(this).find(".image-custom-crop, .image-crop-select-button").show().end();
 			    			}
 	    				},
-	    				"traditional" : function onImageFormtoolOpenTraditional(event){  },
-	    				"cancel" : function onImageFormtoolOpenCancel(event){ 
-	    					imageformtool.inlineview.find("span.action-cancel").hide();
-	    					imageformtool.inlineview.find("span.not-cancel").show();
+	    				"traditional" : function onArrayImageFormtoolOpenTraditional(event){  },
+	    				"cancel" : function onArrayImageFormtoolOpenCancel(event){ 
+	    					arrayimageFormtool.inlineview.find("span.action-cancel").hide();
+	    					arrayimageFormtool.inlineview.find("span.not-cancel").show();
 	    				}
 	    			},
 	    			"onCloseTarget" : {
-	    				"upload" : function onImageFormtoolCloseUpload(event){  },
-	    				"complete" : function onImageFormtoolCloseComplete(event){  },
-	    				"autogenerate" : function onImageFormtoolCloseAutogenerate(event,oldviewdiv,oldview,newview){
+	    				"upload" : function onArrayImageFormtoolCloseUpload(event){  },
+	    				"complete" : function onArrayImageFormtoolCloseComplete(event){  },
+	    				"autogenerate" : function onArrayImageFormtoolCloseAutogenerate(event,oldviewdiv,oldview,newview){
 	    					if (newview!="working"){ 
-		    					imageformtool.inputs.resizemethod.val("");
-		    					imageformtool.inputs.deletef.val("false");
+		    					arrayimageFormtool.inputs.resizemethod.val("");
+		    					arrayimageFormtool.inputs.deletef.val("false");
 		    				}
 	    				},
-	    				"working" : function onImageFormtoolCloseAutogenerate(event){
-	    					imageformtool.inputs.resizemethod.val("");
-		    				imageformtool.inputs.deletef.val("false");
+	    				"working" : function onArrayImageFormtoolCloseAutogenerate(event){
+	    					arrayimageFormtool.inputs.resizemethod.val("");
+		    				arrayimageFormtool.inputs.deletef.val("false");
 	    				},
-	    				"traditional" : function onImageFormtoolCloseTraditional(event){ 
-	    					imageformtool.inputs.traditional.val(""); 
+	    				"traditional" : function onArrayImageFormtoolCloseTraditional(event){ 
+	    					arrayimageFormtool.inputs.traditional.val(""); 
 	    				},
-	    				"cancel" : function onImageFormtoolCloseCancel(event){
-	    					imageformtool.inlineview.find("span.not-cancel").hide();
-	    					imageformtool.inlineview.find("span.action-cancel").show();
+	    				"cancel" : function onArrayImageFormtoolCloseCancel(event){
+	    					arrayimageFormtool.inlineview.find("span.not-cancel").hide();
+	    					arrayimageFormtool.inlineview.find("span.action-cancel").show();
 	    				}
 	    			}
 	    		})
     			
-    			.find("button.image-delete-button").bind("click",function onImageFormtoolDelete(){ imageformtool.deleteImage(); return false; }).end()
-				.find("a.rotate").bind("click",function onImageFormtoolRotate(){imageformtool.rotateImage(); return false; }).end()
+    			.find("button.image-delete-button").bind("click",function onArrayImageFormtoolDelete(){ arrayimageFormtool.deleteImage(); return false; }).end()
+				.find("a.rotate").bind("click",function onArrayImageFormtoolRotate(){arrayimageFormtool.rotateImage(); return false; }).end()
     			
     	
 
-			$j(imageformtool).bind("filechange",function onImageFormtoolFilechangeUpdate(event,results){
+			$j(arrayimageFormtool).bind("filechange",function onArrayImageFormtoolFilechangeUpdate(event,results){
 				if (results.value && results.value.length>0){
 					var imageMaxWidth = (results.width < 400) ? results.width : 400;
-					var complete = imageformtool.multiview.findView("complete")
+					var complete = arrayimageFormtool.multiview.findView("complete")
 						.find(".image-status").html('<i class="fa fa-picture-o fa-fw"></i>').end()
 						.find(".image-filename").html(results.filename).end()
 						.find(".image-size").html(results.size).end()
@@ -214,34 +216,36 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 					if (! results.fullpath.match(/res.cloudinary.com/gi)) {
 						cachebust = "?"+new Date().getTime();
 					}
-					if (imageformtool.inline){
-						imageformtool.inlineview
+					if (arrayimageFormtool.inline){
+						arrayimageFormtool.inlineview
 							.find("a.image-preview").attr("href",results.fullpath).tooltipster("update", "<img src='"+results.fullpath+cachebust+"' style='"+(imageMaxWidth?"width:"+imageMaxWidth+"px":"")+"; max-width:400px; max-height:400px;'><br><div style='width:"+previewsize.width.toString()+"px;'>"+results.size.toString()+"</span>KB, "+results.width.toString()+"px x "+results.height+"px</div>").end()
 							.find("span.action-preview").show().end()
 							.find("span.dependant-options").show().end();
-						imageformtool.multiview.selectView("cancel");
+						arrayimageFormtool.multiview.selectView("cancel");
 					}
 					else{
-						imageformtool.multiview.find("a.image-preview").attr("href",results.fullpath).tooltipster("update", "<img src='"+results.fullpath+cachebust+"' style='width:"+(imageMaxWidth?"width:"+imageMaxWidth+"px":"")+"px; max-width:400px; max-height:400px;'>");
-						imageformtool.multiview.selectView("complete");
+						arrayimageFormtool.multiview.find("a.image-preview").attr("href",results.fullpath).tooltipster("update", "<img src='"+results.fullpath+cachebust+"' style='width:"+(imageMaxWidth?"width:"+imageMaxWidth+"px":"")+"px; max-width:400px; max-height:400px;'>");
+						arrayimageFormtool.multiview.selectView("complete");
 					}
 				}
-			}).bind("fileerror.updatedisplay",function onImageFormtoolFileerrorDisplay(event,action,error,message){
+			}).bind("fileerror.updatedisplay",function onArrayImageFormtoolFileerrorDisplay(event,action,error,message){
 				console.log('Error Fired');
 				$j('#'+prefix+property+"_"+action+"error").html(message).show();
 			})
 			
 			
     		
-			imageformtool.elements.uploader = new plupload.Uploader({
+			arrayimageFormtool.elements.uploader = new plupload.Uploader({
 				runtimes:'html5',
-				browse_button: imageformtool.elements.dropzone /*imageformtool.elements.browse*/,
-				headers:{t:imageformtool.token},
+				browse_button: arrayimageFormtool.elements.dropzone /*arrayimageFormtool.elements.browse*/,
+				headers:{t:arrayimageFormtool.token},
 				url : url,
 				multi_selection: true,
-				file_data_name: imageformtool.filedataname,
-				drop_element: imageformtool.elements.dropzone,
-				filters: {max_file_size: imageformtool.sizeLimit,
+				multipart: true,
+				multipart_params: {},
+				file_data_name: arrayimageFormtool.filedataname,
+				drop_element: arrayimageFormtool.elements.dropzone,
+				filters: {max_file_size: arrayimageFormtool.sizeLimit,
 						
 						mime_types : [
 						{ title : "Image files", extensions : filetypes }
@@ -251,14 +255,14 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 				init: {
 						/*
 				BeforeUpload: function(up, files) {
-					var currentFiles = imageformtool.multiview.find('.image-thumb').length;
-					console.log('File added. Current Files',currentFiles,' filelimit',imageformtool.fileLimit);
+					var currentFiles = arrayimageFormtool.multiview.find('.image-thumb').length;
+					console.log('File added. Current Files',currentFiles,' filelimit',arrayimageFormtool.fileLimit);
 					
-					if (currentFiles >= imageformtool.fileLimit)
+					if (currentFiles >= arrayimageFormtool.fileLimit)
 					{
-						//imageformtool.elements.uploader.refresh();
-						//imageformtool.elements.uploader.removeFile(files);
-						$j(imageformtool).trigger("fileerror", ["upload", "500",'Reached Upload Limit of '+imageformtool.fileLimit]);
+						//arrayimageFormtool.elements.uploader.refresh();
+						//arrayimageFormtool.elements.uploader.removeFile(files);
+						$j(arrayimageFormtool).trigger("fileerror", ["upload", "500",'Reached Upload Limit of '+arrayimageFormtool.fileLimit]);
 						return false;}
 					
 						
@@ -268,19 +272,21 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 				FilesAdded: function(up, files) {
                 // Called when files are added to queue
 				var tmp = {};
-				var currentFiles = imageformtool.multiview.find('.image-thumb').length;
-				//console.log('File added. Current Files',currentFiles,' filelimit',imageformtool.fileLimit,' files added ', files.length,' Queue ',imageformtool.elements.uploader.files,' splice');
-				if (currentFiles >= imageformtool.fileLimit && imageformtool.fileLimit != 1)
+				var aftAutoLabelField = (arrayimageFormtool.ftAutoLabelField).split(',');
+				var aValues = [];
+				var currentFiles = arrayimageFormtool.multiview.find('.image-thumb').length;
+				//console.log('File added. Current Files',currentFiles,' filelimit',arrayimageFormtool.fileLimit,' files added ', files.length,' Queue ',arrayimageFormtool.elements.uploader.files,' splice');
+				if (currentFiles >= arrayimageFormtool.fileLimit && arrayimageFormtool.fileLimit != 1)
 				{
 					up.splice(0,up.files.length);
-					$j(imageformtool).trigger("fileerror", ["upload", "500",'Reached Upload Limit of '+imageformtool.fileLimit]);
+					$j(arrayimageFormtool).trigger("fileerror", ["upload", "500",'Reached Upload Limit of '+arrayimageFormtool.fileLimit]);
 				
 				} else {
 					// limit the files
-					if (imageformtool.fileLimit == 1) {
+					if (arrayimageFormtool.fileLimit == 1) {
 						maxFilesAllowedToUpload = 1;
 					} else {
-						maxFilesAllowedToUpload = imageformtool.fileLimit - currentFiles;
+						maxFilesAllowedToUpload = arrayimageFormtool.fileLimit - currentFiles;
 					}
 					
 					//console.log('maxfileallowed ',maxFilesAllowedToUpload);
@@ -288,9 +294,20 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 					{//console.log('splice code ',maxFilesAllowedToUpload,',',up.files.length);
 					up.splice(maxFilesAllowedToUpload,up.files.length);}
 					//console.log('spliced now queue this long ',up.files.length,' and files is ', files.length);
-					//console.log('imageformtool.elements.uploader.files ',up.files);
+					//console.log('arrayimageFormtool.elements.uploader.files ',up.files);
 					tmp['fileName'] = files[0].name;
-					//tmp[property+'DELETE'] = imageformtool.inputs.deletef.val();
+					// now check to see if we should be sending through a label
+					if (aftAutoLabelField.length){
+						for (let i in aftAutoLabelField ) {
+							aValues.push($j('#'+prefix+aftAutoLabelField[i]).val());
+						}
+						if (aValues.length) {
+							tmp['ftAutoLabelField'] = aValues.join(' '); 
+						}
+						
+					}
+					
+					//tmp[property+'DELETE'] = arrayimageFormtool.inputs.deletef.val();
 					up.setOption('multipart_params', tmp);
 					//console.log('TMPP ',tmp);
 					//console.log('UP ',up);
@@ -307,7 +324,7 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 						},
 
 				Error: function(up, error) {
-				$j(imageformtool).trigger("fileerror", ["upload", "500", error.message]);	
+				$j(arrayimageFormtool).trigger("fileerror", ["upload", "500", error.message]);	
 				},		
 					
 				UploadProgress: function(up, file) {
@@ -315,32 +332,32 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
                 //console.log('[UploadProgress]', 'File:', file, "Total:", up.total);
 				console.log(up.total);
 					$j('#'+prefix+property+"_uploaderror").hide();
-					if ($j('#'+imageformtool.elements.dropzone+' div.info .fa-spinner').length == 0) {
-						$j('#'+imageformtool.elements.dropzone+' div.info').html('<i class="fa fa-spinner fa-spin fa-fw"></i><span></span>');
+					if ($j('#'+arrayimageFormtool.elements.dropzone+' div.info .fa-spinner').length == 0) {
+						$j('#'+arrayimageFormtool.elements.dropzone+' div.info').html('<i class="fa fa-spinner fa-spin fa-fw"></i><span></span>');
 					}
-					$j('#'+imageformtool.elements.dropzone+' div.info span').text((up.total.done+1)+' of '+up.files.length+' uploading '+file.percent+'%');
-					$j('#'+imageformtool.elements.browse).hide();
-					//$j('#'+imageformtool.elements.stop).show();
+					$j('#'+arrayimageFormtool.elements.dropzone+' div.info span').text((up.total.done+1)+' of '+up.files.length+' uploading '+file.percent+'%');
+					$j('#'+arrayimageFormtool.elements.browse).hide();
+					//$j('#'+arrayimageFormtool.elements.stop).show();
 				},	
 				
 				FileUploaded: function(up, file, result) {
 				var results = $j.parseJSON(result.response);
 				// hide any previous results
 				$j('#'+prefix+property+"_uploaderror").hide();
-				$j('#'+imageformtool.elements.dropzone+' div.info').html('<i class="fa fa-upload fa-2x" aria-hidden="true" style="opacity: .5;"></i><br>drag to here<br>or click to browse');
-				$j('#'+imageformtool.elements.browse).show();
-				$j('#'+imageformtool.elements.stop).hide();
+				$j('#'+arrayimageFormtool.elements.dropzone+' div.info').html('<i class="fa fa-upload fa-2x" aria-hidden="true" style="opacity: .5;"></i><br>drag to here<br>or click to browse');
+				$j('#'+arrayimageFormtool.elements.browse).show();
+				$j('#'+arrayimageFormtool.elements.stop).hide();
 				if (results.error) {
 						// if an error is returned from the server
-						$j(imageformtool).trigger("fileerror", ["upload", "500", results.error]);
+						$j(arrayimageFormtool).trigger("fileerror", ["upload", "500", results.error]);
 					} else {
-						imageformtool.inputs.base.val(results.value);
+						arrayimageFormtool.inputs.base.val(results.value);
                         // now add the image
                         //console.log('upload complete add thumb');
-						if (imageformtool.fileLimit == 1) {
-							imageformtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
+						if (arrayimageFormtool.fileLimit == 1) {
+							arrayimageFormtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						} else {
-							imageformtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
+							arrayimageFormtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						}
                         
                         htmx.process('#thumb-'+results.files[0].objectid);
@@ -348,8 +365,8 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
                         //$j('#thumb-'+results.files[0].objectid).setAttribute('hx-config', '{"load":["click"]}')
                         //htmx.trigger(document, 'htmx:load');
                         
-						//imageformtool.multiview.find('.previewWindow').attr('src',results.fullpath);
-						//$j(imageformtool).trigger("filechange", [results]);
+						//arrayimageFormtool.multiview.find('.previewWindow').attr('src',results.fullpath);
+						//$j(arrayimageFormtool).trigger("filechange", [results]);
 						// for arrayImage
 						
 					}; // end if
@@ -359,53 +376,53 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 					
 				}
 		  }); /// end plupload
-				imageformtool.elements.uploader.init();
+				arrayimageFormtool.elements.uploader.init();
 
 			// this function will clear all current items in the queue but the current uploading file will continue on. 
-			$j('#'+imageformtool.elements.stop).on('click',function(){
-				console.log(imageformtool.elements.uploader);
+			$j('#'+arrayimageFormtool.elements.stop).on('click',function(){
+				console.log(arrayimageFormtool.elements.uploader);
 				
-				//imageformtool.elements.uploader.stop();
+				//arrayimageFormtool.elements.uploader.stop();
 				// loop through files and remove them
-				//imageformtool.elements.uploader.splice(2);
-				//imageformtool.elements.uploader.refresh();
-				//imageformtool.elements.uploader.stop();
-				//imageformtool.elements.uploader.start();
-				//imageformtool.elements.uploader.refresh();	
+				//arrayimageFormtool.elements.uploader.splice(2);
+				//arrayimageFormtool.elements.uploader.refresh();
+				//arrayimageFormtool.elements.uploader.stop();
+				//arrayimageFormtool.elements.uploader.start();
+				//arrayimageFormtool.elements.uploader.refresh();	
 				
 						
 				/*
-				for (const file in imageformtool.elements.uploader.files) {
+				for (const file in arrayimageFormtool.elements.uploader.files) {
 					// Runs 5 times, with values of step 0 through 4.
-					imageformtool.elements.uploader.removeFile(file);
+					arrayimageFormtool.elements.uploader.removeFile(file);
 				  }
 				  */
-				//imageformtool.elements.uploader.stop();
+				//arrayimageFormtool.elements.uploader.stop();
 				
-				//imageformtool.elements.uploader.start();
-				imageformtool.elements.uploader.splice();
-				imageformtool.elements.uploader.refresh();
+				//arrayimageFormtool.elements.uploader.start();
+				arrayimageFormtool.elements.uploader.splice();
+				arrayimageFormtool.elements.uploader.refresh();
 				
-				//console.log(imageformtool.elements.uploader);
-				//imageformtool.elements.uploader.start();
+				//console.log(arrayimageFormtool.elements.uploader);
+				//arrayimageFormtool.elements.uploader.start();
 				
-				//$j('#'+imageformtool.elements.dropzone+' div.info').html('<i class="fa fa-upload fa-2x" aria-hidden="true" style="opacity: .5;"></i><br>drag to here<br>or click to browse');
-				//$j('#'+imageformtool.elements.browse).show();
-				//$j('#'+imageformtool.elements.stop).hide();
+				//$j('#'+arrayimageFormtool.elements.dropzone+' div.info').html('<i class="fa fa-upload fa-2x" aria-hidden="true" style="opacity: .5;"></i><br>drag to here<br>or click to browse');
+				//$j('#'+arrayimageFormtool.elements.browse).show();
+				//$j('#'+arrayimageFormtool.elements.stop).hide();
 				
 				
 			});
-			$j('#'+imageformtool.elements.dropzone).on('dragenter dragover',function(){$j(this).addClass('drag-on');})
-			$j('#'+imageformtool.elements.dropzone).on('dragleave drop',function(){$j(this).removeClass('drag-on');})
+			$j('#'+arrayimageFormtool.elements.dropzone).on('dragenter dragover',function(){$j(this).addClass('drag-on');})
+			$j('#'+arrayimageFormtool.elements.dropzone).on('dragleave drop',function(){$j(this).removeClass('drag-on');})
 			
 			
 		};
 		
-		this.getPostValues = function imageFormtoolGetPostValues(){
+		this.getPostValues = function arrayimageFormtoolGetPostValues(){
 			// get the post values
 			var values = {};
 			$j('[name^="'+prefix+property+'"]').each(function(){ if (this.name!=prefix+property+"NEW") values[this.name.slice(prefix.length)]=""; });
-			if (imageformtool.sourceField) values[imageformtool.sourceField] = "";
+			if (arrayimageFormtool.sourceField) values[arrayimageFormtool.sourceField] = "";
 			values = getValueData(values,prefix);
 			
 			return values;
@@ -425,6 +442,6 @@ $fc.imageformtool = function imageFormtoolObject(prefix,property,bUUID){
 		
 	};
 	
-	if (!this[prefix+property]) this[prefix+property] = new ImageFormtool(prefix,property);
+	if (!this[prefix+property]) this[prefix+property] = new ArrayImageFormtool(prefix,property);
 	return this[prefix+property];
 };
