@@ -110,6 +110,7 @@
 	    <cfset var error = "" />
 	    <cfset var readImageError = "" />
 	    <cfset var imageMaxWidth = 400 />
+		<cfset var cacheBuster = getNumericDate(now())>
 
 
 		<cfimport taglib="/farcry/core/tags/webskin/" prefix="skin" />
@@ -277,7 +278,7 @@ Select Exactly How To Crop Your Image
 								<cfif len(readImageError)><div id="#arguments.fieldname#_readImageError" class="alert alert-error alert-error-readimg" style="margin-top:0.7em;margin-bottom:0.7em;">#readImageError#</div></cfif>
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>
 
-								<span class="image-filename small">#filename#</span><br> <a class="image-preview fc-richtooltip btn btn-primary btn-mini" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#' style='max-width:400px; max-height:400px;' />" href="#imagePath#" target="_blank"> <i class="fa fa-eye" aria-hidden="true"></i> Preview</a><span class="regenerate-link">  <a href="##autogenerate" class="select-view btn btn-primary btn-mini">Regenerate</a></span> <cfif arguments.stMetadata.ftAllowUpload> <a href="##upload" class="select-view btn btn-primary btn-mini">Upload</a>  <a href="##delete" class="select-view btn btn-primary btn-mini">Delete</a></cfif> <br>
+								<span class="image-filename small">#filename#</span><br> <a class="image-preview fc-richtooltip btn btn-primary btn-mini" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#?#cacheBuster#' style='max-width:400px; max-height:400px;' />" href="#imagePath#?#cacheBuster#" target="_blank"> <i class="fa fa-eye" aria-hidden="true"></i> Preview</a><span class="regenerate-link">  <a href="##autogenerate" class="select-view btn btn-primary btn-mini">Regenerate</a></span> <cfif arguments.stMetadata.ftAllowUpload> <a href="##upload" class="select-view btn btn-primary btn-mini">Upload</a>  <a href="##delete" class="select-view btn btn-primary btn-mini">Delete</a></cfif> <br>
 								<cfif arguments.stMetadata.ftShowMetadata>
 									<div class="small" style="margin-top:5px">
 									<i class="fa fa-info-circle fa-fw"></i> Size: <span class="image-size">#round(stImage.size / 1024)#</span>KB, Dimensions: <span class="image-width">#stImage.width#</span>px x <span class="image-height">#stImage.height#</span>px
@@ -338,7 +339,6 @@ Select Exactly How To Crop Your Image
 							<div class="image-cancel-upload"><i class="fa fa-times-cirlce-o fa-fw"></i> #cancelDeleteButton#</div>
 						</div>
 						<cfif bFileExists>
-							<cfset cacheBuster = getNumericDate(now())>
 							<div id="#arguments.fieldname#_complete" class="complete-view">
 		    					<cfif len(readImageError)><div id="#arguments.fieldname#_readImageError" class="alert alert-error alert-error-readimg" style="margin-top:0.7em;margin-bottom:0.7em;">#readImageError#</div></cfif>
 								<div class="row">

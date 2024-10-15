@@ -22,7 +22,9 @@
 	<cfproperty name="ftLibaryPosition" required="false" default="side" type="string"
 		hint="Where the libary appears either side or below">
 	<cfproperty name="ftEditFields" required="false" default="title" type="string"
-		hint="A comma delimited list of filed to include in the edit action."> 
+		hint="A comma delimited list of filed to include in the edit action.">
+	<cfproperty name="ftEditWebskin" required="false" default="editArrayImage" type="string"
+		hint="The webskin used for the Full Editor editing."> 
 
 	
 	
@@ -52,6 +54,7 @@
 		<cfset var json = "" />
 		<cfset var result = "" />
 		<cfset var i = "" />
+		<cfset var csrfToken = CSRFGenerateToken()/>
 		
 		
 		<cfset var stJSON = structnew() />
@@ -95,7 +98,7 @@
 				
 				<cfset stDefaults = {} />
 				<!--- this could be used to rename the content title eg --->
-				<cfif structKeyExists(form,'ftAutoLabelField') AND form.ftAutoLabelField NEQ ''>
+				<cfif structKeyExists(form,'ftAutoLabelField') AND trim(form.ftAutoLabelField) NEQ ''>
 					<cfset stDefaults.title = form.ftAutoLabelField>
 				</cfif>
 				
@@ -223,36 +226,74 @@
 	<cfsavecontent variable="theHTML">
 	<cfoutput>
 		<div class="image-edit-box">
-			<!--- look for fields of string --->
-			<!---
-			<cfdump var="#stImage#">
-			<cfdump var="#arguments.stMETADATA#">
-			<cfdump var="#application.stcoapi[stImage.typename].stProps#">
-			--->
+			<h5>
+				Quick Edit
+				<button class="btn btn-primary btn-sm pull-right"
+					style="margin-left:10px;" 
+					hx-get="#theURL#/action/edit-full/imageid/#stImage.objectid#" 
+					hx-swap="outerHTML"
+					hx-target="closest .image-edit-box">
+						Full Editor
+				</button>			
+			</h5>
+			<!--- look for fields of string --->			
 			<!--- todo : use stprops to better render the form --->
 			<cfloop list="#arguments.stMETADATA.ftEditFields#" index="i">
 				<label>#i# <input name="edit-#i#" value="#stImage[i]#"></label>
 			</cfloop>
 			<button
-			class="btn btn-primary"
-			hx-post="#theURL#/action/edit-save/imageid/#url.imageid#"
-			hx-swap="outerHTML"
-			hx-target="closest .image-thumb"
-			>Save</button> 
+				class="btn btn-primary"
+				hx-post="#theURL#/action/edit-save/imageid/#url.imageid#"
+				hx-swap="outerHTML"
+				hx-target="closest .image-thumb">
+					Save
+			</button> 
+			
 			<button 
-			hx-get="#theURL#/action/edit-close/imageid/#url.imageid#"			
-			hx-swap="outerHTML"
-			hx-target="closest .image-thumb"
-			hx-trigger="click, click from:.edit-image" 
-			class="btn btn-primary btn-sm pull-right"
-
-			>Cancel</button>
+				hx-get="#theURL#/action/edit-close/imageid/#url.imageid#"			
+				hx-swap="outerHTML"
+				hx-target="closest .image-thumb"
+				hx-trigger="click, click from:.edit-image" 
+				class="btn btn-primary btn-sm pull-right">
+					Cancel
+			</button>
 		</div>
 	</cfoutput>
 	</cfsavecontent>
 
 	<cfset application.fapi.stream(content='#theHTML#',type="html",status="200") />
 </cfif>
+
+<cfif structkeyexists(url,"action") and url.action eq "edit-full">
+	<cfset stImage = application.fapi.getContentObject(url.imageid) />	
+	<cfset theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)>
+	<cfset EditURL = "#application.url.farcry#/conjuror/invocation.cfm?objectid=#listfirst(stImage.objectid)#&typename=#stImage.typename#&method=#arguments.stMETADATA.ftEditWebskin#&module=customlists/#stImage.typename#.cfm&ref=closewin">
+		
+	<cfsavecontent variable="theHTML">
+		<cfoutput>
+			<dialog id="#replace(url.imageid,'-','','all')#editdialog">
+				<div class="edit-loader"></div>
+				<iframe 
+					src="#EditURL#" 
+					style="width:800px;height:600px;border: 2px solid rgb(98 218 255);border-radius: 10px;">			
+				</iframe>
+			</dialog>
+			<script>
+				var dialog#replace(url.imageid,'-','','all')# = document.getElementById("#replace(url.imageid,'-','','all')#editdialog");
+				// "Show the dialog" button opens the dialog modally
+				dialog#replace(url.imageid,'-','','all')#.showModal();	
+				function closeIframe() {
+					// todo: loop over all images of this type and update			
+					htmx.ajax('GET', '#theURL#/action/edit-close/imageid/#url.imageid#', {target:'###arguments.fieldname#-multiview ##thumb-#url.imageid#', swap:'outerHTML',headers:{"t": "#csrfToken#"}})
+					dialog#replace(url.imageid,'-','','all')#.close();
+				}	
+			</script>
+		</cfoutput>
+	</cfsavecontent>
+
+	<cfset application.fapi.stream(content='#theHTML#',type="html",status="200") />
+</cfif>
+
 
 <cfif structkeyexists(url,"action") and url.action eq "edit-close">
 	<cfset stImage = application.fapi.getContentObject(url.imageid) />	
@@ -395,7 +436,7 @@
            		<cfset statuscode="286" ><!--- identifies the status as complete --->
 				<cfheader name="HX-Trigger" value="updateLibrary#replace(arguments.fieldname,prefix,'')#">	<!--- triggers the library to update --->
 				<cftry>				
-					#getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stFile.stObject,false)# 					
+					#getImageThumb(arguments.typename,arguments.stObject,arguments.stMetadata,arguments.fieldname,stFile.stObject,true,'image-waiting')# 					
 					<cfcatch>
 						<a class="error" title="#cfcatch.message#">Error has occured</a>					
 						<!---<cfdump var="#cfcatch#">						
@@ -479,8 +520,8 @@
 
 <!---<cfdump var="#arguments.stMetadata#">--->
 		
-	
-<!---<cfdump var="#stImageProps#" expand="no">
+<!---	
+<cfdump var="#application.stcoapi[arguments.stMetadata.ftjoin].stProps#" expand="no">
 		<cfreturn ''>--->
 <cfsavecontent variable="metadatainfo">
 <!---
@@ -493,11 +534,10 @@
 			<cfoutput>
 				Max of #arguments.stMetadata.ftLimit?arguments.stMetadata.ftLimit:20# Images<br>
 				<cfloop list="#arguments.stMetadata.ftjoin#" index="i">
-					<cfif findnocase('image',i)>
-						<cfset stProps = application.stcoapi[i].stProps />
-						
-					Size Limit: #(stProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit?numberFormat(stProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit/1e+6,'___.9')&'Mb':'none')#<br>
-					#structKeyExists(stProps,arguments.stMetadata.ftSourceImage)?stProps[arguments.stMetadata.ftSourceImage].metadata.ftAllowedExtensions:stMetadata.ftAllowedExtensions#
+					<cfif structKeyExists(application.stcoapi[i].stProps,'SourceImage')>
+						<cfset stProps = application.stcoapi[i].stProps />						
+						Size Limit: #(stProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit?numberFormat(stProps[arguments.stMetadata.ftSourceImage].METADATA.ftSizeLimit/1e+6,'___.9')&'Mb':'none')#<br>
+						#structKeyExists(stProps,arguments.stMetadata.ftSourceImage)?stProps[arguments.stMetadata.ftSourceImage].metadata.ftAllowedExtensions:stMetadata.ftAllowedExtensions#
 					</cfif>
 				</cfloop>
 				<cfif arguments.stMetadata.ftAutoLabelField NEQ "">
@@ -555,11 +595,12 @@
 					padding: 8px 8px 15px 8px;
 					border-radius: 10px;}
 				.image-preview {cursor: pointer;}
-				dialog {border-color: white!important;outline-color:white;} 
+				dialog {border-color: white!important;outline-color:white;border-radius:10px;} 
 				img.image-preview-dialog {border-radius:20px;}
-				.image-thumb {display:flex;width:80px;height:80px;background:rgb(196 241 255);border-radius:10px;position:relative;}
-				.image-thumb:not(:has(.image-preview)) {border:1px solid rgb(98 218 255);overflow:hidden;}
-				.image-thumb:not(:has(.image-preview))::before {
+				.image-waiting,.image-thumb,.edit-loader {display:flex;width:80px;height:80px;background:rgb(196 241 255);border-radius:10px;position:relative;}
+				.edit-loader {position: absolute;inset: 30px;width: auto;height: auto;z-index: -1;}
+				.image-waiting:not(:has(.image-preview)),.edit-loader {border:1px solid rgb(98 218 255);overflow:hidden;}
+				.image-waiting:not(:has(.image-preview))::before,.edit-loader::before {
 					content: '';		
 					margin: auto -10px auto 50%;
 					font-size: 2rem;
@@ -572,8 +613,8 @@
 					height:2px;
 					transform-origin: center left;
 					}
-				.image-thumb:not(:has(.image-preview))::after {
-					content: 'standby processing image ';
+				.image-waiting:not(:has(.image-preview))::after,.edit-loader::after {
+					content: 'Standby Processing Image ';
 					position:absolute;
 					left:0; right:0;
 					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -585,6 +626,9 @@
 					display: block;
 					text-align: center;	
 					}
+				.edit-loader::after {
+					content: 'Standby Loading Edit Form ';
+				}
 				@keyframes fadeInOut {
 					0% { opacity: 0; }
 					50% { opacity: 1; }
@@ -730,7 +774,7 @@
 
 
 					<cfset local.url = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)&'&action=upload'>
-					<dialog id="#arguments.fieldname#-dialogImagePreview">
+					<dialog id="#arguments.fieldname#-dialogImagePreview" style="max-height: calc(100% - 60px);max-width: calc(100% - 80px);">
 						<div id="#arguments.fieldname#-dialogImageContent">
 						</div>
 						<div class="btn-close btn btn-primary" style="margin:20px auto">
@@ -844,8 +888,11 @@
 	<cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
 	<cfargument name="stImage" type="struct" required="yes">
 	<cfargument name="bIncludeOuter" type="boolean" default="1" required="no">
+	<cfargument name="deleteClass" type="string" default="image-thumb" required="no" hint="The class of the outer element to be removed after delete or detach.">
 	<cfset var HTML = "">
 	<cfset var cacheBuster = getNumericDate(now())>
+	<cfset var EditURL = "#application.url.farcry#/conjuror/invocation.cfm?objectid=#listfirst(arguments.stImage.objectid)#&typename=#arguments.stImage.typename#&method=#arguments.stMETADATA.ftEditWebskin#&module=customlists/#arguments.stImage.typename#.cfm&ref=closewin">
+		
 	<cfset var theURL = getAjaxURL(typename=arguments.typename,stObject=arguments.stObject,stMetadata=arguments.stMetadata,fieldname=arguments.fieldname,combined=true)>
 							<cfsavecontent variable="html" >
 							<cftry>															
@@ -860,18 +907,17 @@
 								hx-get="#theURL#/action/delete/imageid/#arguments.stImage.objectid#" 
 								hx-swap="outerHTML"
 								hx-confirm="Are you sure you wish to delete this image? This will also permanently delete the image from the library."
-								hx-target="closest .image-thumb"></i>
+								hx-target="closest .#arguments.deleteClass#"></i>
 							</cfif>
 							<cfif arguments.stMetadata.ftRemoveType NEQ 'delete'>
 								<i class="fa fa-minus-circle delete-image" aria-hidden="true" title="Detach"
 								style="color:rgb(156 39 176);" 
 								hx-get="#theURL#/action/delete/imageid/#arguments.stImage.objectid#" 
 								hx-swap="outerHTML"								
-								hx-target="closest .image-thumb"></i>
+								hx-target="closest .#arguments.deleteClass#"></i>
 							</cfif>
 							<cfif arguments.stMetadata.ftAllowEdit>
-								<i class="fa fa-pencil edit-image " aria-hidden="true" title="Edit"
-								
+								<i class="fa fa-pencil edit-image " aria-hidden="true" title="Edit"								
 								hx-get="#theURL#/action/edit/imageid/#arguments.stImage.objectid#" 
 								hx-swap="outerHTML"								
 								></i>
@@ -882,6 +928,8 @@
 								hx-swap="outerHTML"
 								hx-target="closest .image-thumb"></i>
 							</cfif>
+							
+
 							<cfif arguments.bIncludeOuter></div></cfif>
 							</cfoutput>
 							<cfcatch><cfdump var="#cfcatch#" format="text"></cfcatch>

@@ -355,9 +355,9 @@ $fc.arrayimageFormtool = function arrayimageFormtoolObject(prefix,property,bUUID
                         // now add the image
                         //console.log('upload complete add thumb');
 						if (arrayimageFormtool.fileLimit == 1) {
-							arrayimageFormtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
+							arrayimageFormtool.multiview.find('.image-list').show().html('<div id="thumb-'+results.files[0].objectid+'" class="image-waiting" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						} else {
-							arrayimageFormtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-thumb" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
+							arrayimageFormtool.multiview.find('.image-list').show().append('<div id="thumb-'+results.files[0].objectid+'" class="image-waiting" hx-get="'+results.files[0].url+'" hx-trigger="every 600ms" hx-disinherit="*" hx-target="this" hx-swap="innerHTML transition:false"></div>');
 						}
                         
                         htmx.process('#thumb-'+results.files[0].objectid);
