@@ -8,10 +8,11 @@
   
 
 --->
-
-
-
-<!--- 2.4.4  newley uploaded images being detached or deleted now remove themselves correctly --->
+<!--- 2.4.8  image.cfc added grey bg to image preview so that trans white png's show up --->
+<!--- 2.4.7  arrayImage library view now works correctly with Rules --->
+<!--- 2.4.6  arrayImage now loading jquery-ui in edit --->
+<!--- 2.4.5  animation on Full Editor --->
+<!--- 2.4.4  arrayImage newley uploaded images being detached or deleted now remove themselves correctly --->
 <!--- 2.4.3 additional cachebusters on image.cfc
             editArrayImage now doesn't show fields that don't have a fieldset, in a fieldset group
             ftEditWebskin added
@@ -32,10 +33,10 @@
 <!--- 2.3.3 updated the loader spinner --->
 <cfcomponent extends="farcry.core.webtop.install.manifest" name="manifest">
 
-<cfset this.name = "Webolution Image Upload v2.4.3" />
+<cfset this.name = "Webolution Image Upload v2.4.8" />
 <cfset this.description = "Image upload with Plupload 3.1.5 & ArrayImage formtool" />
 <cfset this.lRequiredPlugins = "" />
-<cfset this.version = "2.4.3" />
+<cfset this.version = "2.4.8" />
 <cfset addSupportedCore(majorVersion="7", minorVersion="0", patchVersion="0") />
 
 </cfcomponent>

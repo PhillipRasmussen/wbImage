@@ -344,7 +344,10 @@ Select Exactly How To Crop Your Image
 								<div class="row">
 									<div class="span3 text-center">
 										<a class="image-preview fc-richtooltip" data-tooltip-position="bottom" data-tooltip-width="#imageMaxWidth#" title="<img src='#imagePath#?#cacheBuster#' style='max-width:400px; max-height:400px;' />" href="#imagePath#?#cacheBuster#" target="_blank">
-								<img src="#imagePath#?#cacheBuster#" style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;transition: all .3s ease-in;" data-rotate="0" class="previewWindow"></a>
+								<img src="#imagePath#?#cacheBuster#" 
+									style="object-fit:contain;max-height:130px;border:1px solid grey;padding:3px;transition: all .3s ease-in;background:hsl(0deg 0% 82.75% / 41%);" 
+									data-rotate="0" 
+									class="previewWindow"></a>
 								</div>
 									<div class="span8">
 								<span class="image-status" title=""><i class="fa fa-picture-o fa-fw"></i></span>

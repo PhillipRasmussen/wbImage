@@ -19,7 +19,7 @@
 	<cfproperty name="ftAutoLabelField" required="false" default="" 
 		type="string"
 		hint='The Field to Auto Name the image from. can be a comma delimited list.'>
-	<cfproperty name="ftLibaryPosition" required="false" default="side" type="string"
+	<cfproperty name="ftLibaryPosition" required="false" default="below" type="string"
 		hint="Where the libary appears either side or below">
 	<cfproperty name="ftEditFields" required="false" default="title" type="string"
 		hint="A comma delimited list of filed to include in the edit action.">
@@ -271,7 +271,8 @@
 		
 	<cfsavecontent variable="theHTML">
 		<cfoutput>
-			<dialog id="#replace(url.imageid,'-','','all')#editdialog">
+			
+			<dialog class="array-image" id="#replace(url.imageid,'-','','all')#editdialog">
 				<div class="edit-loader"></div>
 				<iframe 
 					src="#EditURL#" 
@@ -495,6 +496,7 @@
 
 		
  		<skin:loadJS id="fc-jquery" />
+		<skin:loadJS id="fc-jquery-ui" />
 	    <skin:loadCSS id="jquery-ui" />
 	    <skin:loadJS id="jquery-tooltip" />
 	    <skin:loadJS id="jquery-tooltip-auto" />
@@ -575,7 +577,40 @@
 			<skin:htmlHead id="arrayimage-css">
 			<cfoutput>
 			<style>
+			
+				<!--- this kept making it disappear in chrome from time to time. So use the @media instead
+				.arrayImage > .controls {container-type: inline-size;}
+				@container (width < 1000px) {
+					.arrayImageMain  {flex-direction: column!important;}
+				}--->
+				@media (max-width:1000px) {
+					.arrayImageMain  {flex-direction: column!important;}
+				}
+				dialog.array-image {
+					display: block;
+										transition: opacity .5s;
+					animation: scale-down .5s cubic-bezier(.25,0,.3,1) forwards;
+					animation-timing-function: cubic-bezier(.5,-.5,.1,1.5);
+					
+					box-shadow: 0 0 2rem 0 rgba(0, 0, 0, 0.5);
+				}
+
+				dialog.array-image[open] {
+					animation: slide-in-down .5s cubic-bezier(.25,0,.3,1) forwards;
+				}
+
+				dialog.array-image:not([open]) {
+					pointer-events: none;
+					opacity: 0;
+				}
+
+				dialog.array-image::backdrop {
+				backdrop-filter: blur(0.25rem);
+				}
+				dialog {border-color: white!important;outline-color:white;border-radius:10px;} 
+
 				.arrayImageMain {display:flex;column-gap:20px;}
+				
 				.dropzone {color:hsl(194 100% 50% / 1);border: 2px dashed rgb(98 218 255);border-radius:10px;height:100px;max-width: 100%;position:relative;display:flex;margin-bottom:1rem}
 				.dropzone.drag-on {border: 2px solid rgb(98 218 255)}
 				.dropzone .info {text-align:center;margin:auto;}
@@ -595,7 +630,7 @@
 					padding: 8px 8px 15px 8px;
 					border-radius: 10px;}
 				.image-preview {cursor: pointer;}
-				dialog {border-color: white!important;outline-color:white;border-radius:10px;} 
+				
 				img.image-preview-dialog {border-radius:20px;}
 				.image-waiting,.image-thumb,.edit-loader {display:flex;width:80px;height:80px;background:rgb(196 241 255);border-radius:10px;position:relative;}
 				.edit-loader {position: absolute;inset: 30px;width: auto;height: auto;z-index: -1;}
@@ -633,6 +668,16 @@
 					0% { opacity: 0; }
 					50% { opacity: 1; }
 					100% { opacity: 0; }
+				}
+				@keyframes slide-in-down {
+					0% {
+						transform: translateY(-100%)
+					}
+				}
+				@keyframes scale-down {
+					to {
+						transform: scale(.75)
+					}
 				}
 				.image-thumb .fa {font-size:1.5rem;position:relative;height:.85em;width:auto;
 				color:hsl(0deg 100% 35%);margin:auto;margin-bottom:-.4em;border:0px solid white;border-radius:50%; isolation: isolate;cursor: pointer;transition: all 200ms}
@@ -690,6 +735,8 @@
 	border-radius:10px;
 	pointer-events: none;;
 }
+				
+
 				</style>
 			
 
@@ -754,20 +801,18 @@
 					
 
 					<cfif arguments.stMetadata.ftAllowSelect AND application.fapi.isLoggedIn()>
-					<div class="libraryDiv">
-						<div class="library" style="position:relative">
-							
-							<div 
-							hx-post="/index.cfm?type=#arguments.typename#&objectid=#arguments.stObject.objectid#&view=displayArrayImageLibrary&property=#arguments.stMetadata.name#&fieldname=#arguments.fieldname#" 
-							hx-target='closest .library'
-							hx-trigger="click"
-							class="btn btn-primary btn-sm"
-							>
-								Select from Library <i class="fa fa-th" style="margin-left:.5em" aria-hidden="true"></i> 
+						<div class="libraryDiv">
+							<div class="library" style="position:relative">								
+								<div 
+								hx-post="/index.cfm?type=#arguments.typename#&objectid=#arguments.stObject.objectid#&view=displayArrayImageLibrary&property=#arguments.stMetadata.name#&fieldname=#arguments.fieldname#" 
+								hx-target='closest .library'
+								hx-trigger="click"
+								class="btn btn-primary btn-sm"
+								>
+									Select from Library <i class="fa fa-th" style="margin-left:.5em" aria-hidden="true"></i> 
+								</div>								
 							</div>
-							
 						</div>
-					</div>
 					</cfif>
 					</div>
 					

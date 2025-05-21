@@ -1,3 +1,4 @@
+<cfsetting enablecfoutputonly="yes">
 <!--- @@Copyright: Zuma, http://www.zuma.co.nz --->
 <!--- @@License: Released Under the "Common Public License 1.0", http://www.opensource.org/licenses/cpl.php --->
 <!--- @@displayname: Display Array Image Library --->
@@ -24,6 +25,7 @@
 	<cfif stMetadata.type eq 'string'>
 			<CFSET stMetadata.ftLimit = 1>
 	</cfif>
+    
 
 
 
@@ -154,7 +156,7 @@
 		<cfif NOT qResult.recordCount>
 			<cfoutput>No Results. Try a different search.</cfoutput>
 		</cfif>
-
+        <cfset oType = createObject("component", application.types[url.filterTypename].packagePath) />
 		<!--- DISPLAY THE SELECTION OPTIONS --->	
 		<skin:pagination query="#qResult#"			
 			oddRowClass="alt"
@@ -167,6 +169,7 @@
 			top="true" bottom="false" fieldname="#url.property#" >
             <cfset stImage = application.fapi.getcontentobject(typename="#url.filterTypename#",objectid="#stCurrentRow.objectid#")>
             
+            
 
            
 			<cfif stCurrentRow.bFirst>
@@ -176,7 +179,7 @@
 			</cfif>
             <cfoutput>
             <div class="image-grid-image <cfif listFindNoCase(lSelected,stCurrentRow.objectid)>image-selected</cfif>">
-            <img src="#getFileLocation(stObject=stImage,fieldname='thumbnailImage',admin=true).path#" 
+            <img src="#oType.getFileLocation(stObject=stImage,fieldname='thumbnailImage',admin=true).path#" 
 			class="library-image"
 			<cfif NOT lSelected.listLen() GTE (stMetadata.ftLimit?stMetadata.ftLimit:20) OR listFindNoCase(lSelected,stCurrentRow.objectid) OR stMetadata.ftLimit EQ 1>
 			title="#listFindNoCase(lSelected,stCurrentRow.objectid)?'Remove':'Add'#"
@@ -194,8 +197,7 @@
 				</cfoutput>
 			</cfif>
            
-		</skin:pagination>
-       
+		</skin:pagination>     
 
 
 
@@ -214,3 +216,4 @@
 	
 
 </cfif>
+<cfsetting enablecfoutputonly="no">
